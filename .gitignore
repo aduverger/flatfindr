@@ -2,6 +2,7 @@
 .coverage
 .ipynb_checkpoints
 .DS_Store
+flatfindr/logins.py
 raw_data/
 *.csv
 **/__pycache__/
