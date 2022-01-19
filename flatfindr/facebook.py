@@ -1,11 +1,13 @@
 # facebook marketplace
-from collections import defaultdict
-from selenium import webdriver
-from time import sleep
-from selenium.webdriver.chrome.options import Options
-from pymongo import MongoClient
-from flatfindr.logins import LOGINS
+import os
 import random
+from collections import defaultdict
+from time import sleep
+
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+
+from flatfindr.logins import LOGINS
 
 
 class Facebook:
@@ -13,11 +15,14 @@ class Facebook:
         self,
         email=LOGINS["facebook"][0],
         password=LOGINS["facebook"][1],
-        path="/Users/aduverger/code/aduverger/flatfindr/raw_data",
+        path=os.path.join(
+            os.path.dirname(os.path.dirname(os.path.realpath(__file__))), "raw_data"
+        ),
     ):
         self.email = email
         self.password = password
         self.path = path
+        print(path)
 
         # Handle the 'Allow notifications box':
         option = Options()
@@ -33,7 +38,6 @@ class Facebook:
         )
 
         self.main_url = "https://www.facebook.com"
-        self.client = MongoClient("mongodb://localhost:27017/")
         self.item_links = []
 
     def log_in(self):
@@ -176,8 +180,8 @@ class Facebook:
 
 if __name__ == "__main__":
     fb = Facebook()
-    fb.log_in()
-    fb.scrape_item_links()
-    # fb.scrape_item_details()
-    fb.quit()
+    # fb.log_in()
+    # fb.scrape_item_links()
+    # # fb.scrape_item_details()
+    # fb.quit()
 
