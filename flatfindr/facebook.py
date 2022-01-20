@@ -25,7 +25,6 @@ class Facebook:
         self.email = email
         self.password = password
         self.path = path
-        print(path)
 
         # Handle the 'Allow notifications box':
         option = Options()
@@ -161,8 +160,8 @@ class Facebook:
 
 if __name__ == "__main__":
     fb = Facebook()
-    # fb.log_in()
-    # fb.scrape_item_links()
-    # # fb.scrape_item_details()
+    fb.log_in()
+    fb.scrape_item_links()
+    fb.scrape_item_details(item_url=fb.item_links[0])
     fb.quit()
 
