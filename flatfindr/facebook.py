@@ -2,8 +2,11 @@
 import os
 import random
 from collections import defaultdict
+from io import BytesIO
 from time import sleep
 
+import requests
+from PIL import Image
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 
@@ -88,94 +91,72 @@ class Facebook:
 
         return self.item_links
 
-    def scrape_item_details(self, db, item_links):
-        for url in item_links:
-            images = []
-            self.driver.get(url)
-            sleep(0.5)
+    def scrape_item_details(self, item_url, db=defaultdict(list)):
+        db["url"].append(item_url)
 
-            url = url
-            try:
-                image_element = self.driver.find_element_by_xpath(
-                    '//img[contains(@class, "_5m")]'
+        fb.driver.get(item_url)
+        # Click on 'see more' button to have the full description
+        buttons = fb.driver.find_elements_by_xpath("//div[@role='button']")
+        _ = [button.click() for button in buttons if button.text == "Voir plus"]
+        sleep(random.uniform(0.2, 0.5))
+
+        details = fb.driver.find_elements_by_xpath("//span[@dir]")
+        price, adress, surface, bedrooms, description = [True] * 5
+        for i in range(len(details)):
+            detail = details[i].text
+            if price and "$ / mois" in detail:
+                db["price($/month)"].append(int(detail[:5].replace(" ", "")))
+                price = False
+            elif adress and "Montréal, QC" in detail:
+                db["adress"].append(detail.replace("Montréal, QC", ""))
+                adress = False
+            elif surface and "mètres carrés" in detail:
+                db["surface(m2)"].append(int(detail[:4].replace(" ", "")))
+                surface = False
+            elif surface and "pieds carrés" in detail:
+                db["surface(m2)"].append(
+                    round(int(detail[:4].replace(" ", "")) / 10.764)
                 )
-                images = [image_element.get_attribute("src")]
-            except:
-                images = ""
-            try:
-                title = self.driver.find_element_by_xpath(
-                    '//div[contains(@class, " _50f")]/span'
-                ).text
-            except:
-                title = ""
-            try:
-                date_time = self.driver.find_element_by_xpath('//a[@class="_r3j"]').text
-            except:
-                date_time = ""
-            try:
-                location = self.driver.find_element_by_xpath(
-                    '//span[@class="_7yi"]'
-                ).text
-            except:
-                location = ""
-            try:
-                price = self.driver.find_element_by_xpath(
-                    '//div[contains(@class, "_5_md")]'
-                ).text
-            except:
-                price = ""
-            try:
-                if self.driver.find_element_by_xpath(
-                    "//a[@title='More']"
-                ).is_displayed():
-                    self.driver.find_element_by_xpath("//a[@title='More']").click()
-                description = self.driver.find_element_by_xpath(
-                    '//p[@class="_4etw"]/span'
-                ).text
-            except:
-                description = ""
+                surface = False
+            elif bedrooms and "chambres · " in detail:
+                db["bedrooms"].append(int(detail[0]))
+                bedrooms = False
+            elif detail in ("Meublé", "Non meublé"):
+                db["furnished"].append(detail)
+            elif description and detail == "Description":
+                db["description"].append(details[i + 1].text.replace("Voir moins", ""))
+                description = False
 
-            try:
-                previous_and_next_buttons = self.driver.find_elements_by_xpath(
-                    "//i[contains(@class, '_3ffr')]"
-                )
-                next_image_button = previous_and_next_buttons[1]
-                while next_image_button.is_displayed():
-                    next_image_button.click()
-                    image_element = self.driver.find_element_by_xpath(
-                        '//img[contains(@class, "_5m")]'
-                    )
-                    sleep(1)
-                    if image_element.get_attribute("src") in images:
-                        break
-                    else:
-                        images.append(image_element.get_attribute("src"))
-            except:
-                pass
-
-        db.Facebook_items.insert(
-            {
-                "Url": url,
-                "Images": images,
-                "Title": title,
-                "Description": description,
-                "Date_Time": date_time,
-                "Location": location,
-                "Price": price,
-            }
+        img = fb.driver.find_element_by_xpath(
+            "//img[@referrerpolicy='origin-when-cross-origin']"
         )
+        db["image"].append(img.get_attribute("src"))
 
-        print(
-            {
-                "Url": url,
-                "Images": images,
-                "Title": title,
-                "Description": description,
-                "Date_Time": date_time,
-                "Location": location,
-                "Price": price,
-            }
-        )
+        for key, value in db.items():
+            if key != "image":
+                print(key + ":", value[-1])
+            else:
+                response = requests.get(db["image"][-1])
+                Image.open(BytesIO(response.content)).resize((400, 400)).show()
+
+        return db
+        # try:
+        #     previous_and_next_buttons = self.driver.find_elements_by_xpath(
+        #         "//i[contains(@class, '_3ffr')]"
+        #     )
+        #     next_image_button = previous_and_next_buttons[1]
+        #     while next_image_button.is_displayed():
+        #         next_image_button.click()
+        #         image_element = self.driver.find_element_by_xpath(
+        #             '//img[contains(@class, "_5m")]'
+        #         )
+        #         sleep(1)
+        #         if image_element.get_attribute("src") in images:
+        #             break
+        #         else:
+        #             images.append(image_element.get_attribute("src"))
+        # except:
+        #     pass
 
 
 if __name__ == "__main__":
@@ -183,5 +164,5 @@ if __name__ == "__main__":
     # fb.log_in()
     # fb.scrape_item_links()
     # # fb.scrape_item_details()
-    # fb.quit()
+    fb.quit()
 
