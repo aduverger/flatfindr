@@ -2,6 +2,7 @@
 import json
 import os
 import random
+from datetime import date, timedelta
 from time import sleep
 
 from selenium import webdriver
@@ -125,6 +126,10 @@ class Facebook:
                 else:
                     # if published less than a day ago, we use 0 as default
                     item_data["published"] = 0
+                # Now let's transform this into a date
+                item_data["published"] = (
+                    date.today() - timedelta(days=item_data["published"])
+                ).isoformat()
             if not item_data.get("price") and KEYWORDS["price"] in detail:
                 try:
                     item_data["price"] = int(detail[:5].replace(" ", ""))
@@ -193,7 +198,7 @@ class Facebook:
 
     def scrape_items_details(self):
         if len(self.items_links):
-            for item_url in self.items_links[:8]:
+            for item_url in self.items_links:
                 item_data = self.scrape_item_details(item_url)
                 self.db["data"].append(
                     [item_data.get(feature, "") for feature in self.db["columns"]]
@@ -232,7 +237,7 @@ class Facebook:
 if __name__ == "__main__":
     fb = Facebook()
     fb.log_in()
-    fb.scrape_items_links(scroll=0)
+    fb.scrape_items_links(scroll=100)
     # fb.scrape_item_details(
     #     "https://www.facebook.com/marketplace/item/4430069320431045/"
     # )
