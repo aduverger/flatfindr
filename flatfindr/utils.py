@@ -8,4 +8,31 @@ KEYWORDS = {
     "furnished": ("Meublé", "Non meublé"),
     "description": "Description",
     "day": "jours",
+    "week": "semaine",
+    "montreal": "Montréal, QC",
+    "see_more": "Voir plus",
+    "see_less": "Voir moins",
+    "next_img": "Voir l’image suivante",
 }
+
+
+def make_url_clickable(val):
+    # target _blank to open new window
+    return f"<a target='_blank' href='{val}'>{val[-5:-1]}</a>"
+
+
+def make_img_clickable(vals):
+    # target _blank to open new window
+    imgs = []
+    cnt = 1
+    for val in vals:
+        imgs.append(f"<a target='_blank' href='{val}'>_{cnt}_</a>")
+        cnt += 1
+    return imgs
+
+
+def make_address_clickable(val):
+    href = (
+        f"https://www.google.com/maps/place/{val.replace(' ', '+')},+Montr%C3%A9al,+QC"
+    )
+    return f"<a target='_blank' href='{href}'>{val}</a>"
