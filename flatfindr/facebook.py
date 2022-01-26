@@ -11,6 +11,9 @@ from selenium.webdriver.chrome.options import Options
 from flatfindr.logins import LOGINS
 from flatfindr.utils import KEYWORDS
 
+ONE_WEEK = 8
+MAX_ITEMS = 30
+
 
 class Facebook:
     def __init__(
@@ -111,7 +114,7 @@ class Facebook:
                 return 0
         elif KEYWORDS["week"] in detail:
             # if published more than a week ago, we use 8 as default
-            publication_day = 8
+            publication_day = ONE_WEEK
         else:
             # if published less than a day ago, we use 0 as default
             publication_day = 0
@@ -183,8 +186,6 @@ class Facebook:
     def get_item_details(self, item_url):
         item_data = {}
         item_data["url"] = item_url
-        item_data["state"] = "new"
-
         self.driver.get(item_url)
         # Click on 'see more' button to get the full description
         buttons = self.driver.find_elements_by_xpath("//div[@role='button']")
@@ -214,14 +215,22 @@ class Facebook:
                 detail = details[i + 1].text
                 item_data["description"] = self.get_item_description(detail)
 
-        item_data["images"] = self.get_item_images()
-        self.print_item_details(item_data)
+        if (
+            item_data["published"]
+            == (date.today() - timedelta(days=ONE_WEEK)).isoformat()
+        ):
+            # If published more than a week ago, we are not interested by this ads
+            item_data["state"] = "NI"
+        else:
+            item_data["state"] = "new"
+            item_data["images"] = self.get_item_images()
+            self.print_item_details(item_data)
         return item_data
 
     def get_items_details(self):
         if len(self.items_links):
             cnt = 0
-            for item_url in self.items_links:
+            for item_url in self.items_links[:MAX_ITEMS]:
                 item_data = self.get_item_details(item_url)
                 self.db["data"].append(
                     [item_data.get(feature, "") for feature in self.db["columns"]]
@@ -237,7 +246,7 @@ class Facebook:
         if os.path.isfile(self.db_path):  # if the db's json exists, load it
             with open(self.db_path, "r") as db_file:
                 self.db = json.load(db_file)
-        else:  # if it doesn't exist, create a ra and save it
+        else:  # if it doesn't exist, create a raw one and save it
             self.db = {
                 "columns": [
                     "url",
@@ -262,11 +271,14 @@ class Facebook:
 
 if __name__ == "__main__":
     fb = Facebook()
+
     fb.log_in()
-    fb.get_items_links(scroll=100)
+    fb.get_items_links(scroll=30)
     fb.quit()
     fb.load_driver()
     fb.get_items_details()
     fb.save_db()
-    fb.quit()
 
+    # fb.get_item_details("https://www.facebook.com/marketplace/item/633005807697219/")
+
+    fb.quit()
