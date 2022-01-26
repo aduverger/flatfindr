@@ -25,7 +25,12 @@ class Facebook:
         self.email = email
         self.password = password
         self.db_path = db_path
+        self.load_driver()
+        self.main_url = "https://www.facebook.com"
+        self.items_links = set()
+        self.load_db()
 
+    def load_driver(self):
         # Handle the 'Allow notifications box':
         option = Options()
         option.add_argument("--disable-infobars")
@@ -42,10 +47,6 @@ class Facebook:
                 "chromedriver",
             ),
         )
-
-        self.main_url = "https://www.facebook.com"
-        self.items_links = set()
-        self.load_db()
 
     def log_in(self):
         self.driver.get(self.main_url)
@@ -165,7 +166,8 @@ class Facebook:
 
         item_data["images"] = []
         try:
-            while True:
+            cnt = 0
+            while cnt < 30:
                 img = self.driver.find_element_by_xpath(
                     "//img[@referrerpolicy='origin-when-cross-origin']"
                 )
@@ -173,14 +175,15 @@ class Facebook:
                 next_button = self.driver.find_element_by_xpath(
                     "//div[@aria-label='Voir l’image suivante']"
                 )
-                if any(size in img_url for size in ("p100x100", "p261x260")):
-                    # If not a picture of the apartment
-                    next_button.click()
-                elif img_url not in item_data["images"]:
-                    item_data["images"].append(img_url)
-                    next_button.click()
-                else:
-                    break
+                if any(size in img_url for size in ("p720x720", "s960x960")):
+                    # If a picture of the apartment
+                    if img_url not in item_data["images"]:
+                        # if unseen
+                        item_data["images"].append(img_url)
+                    else:
+                        break  # if already seen
+                next_button.click()
+                cnt += 1
                 sleep(random.uniform(0.6, 1))
         except:
             pass
@@ -238,9 +241,8 @@ if __name__ == "__main__":
     fb = Facebook()
     fb.log_in()
     fb.scrape_items_links(scroll=100)
-    # fb.scrape_item_details(
-    #     "https://www.facebook.com/marketplace/item/4430069320431045/"
-    # )
+    fb.quit()
+    fb.load_driver()
     fb.scrape_items_details()
     fb.save_db()
     fb.quit()
