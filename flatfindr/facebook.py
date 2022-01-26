@@ -115,57 +115,53 @@ class Facebook:
         sleep(random.uniform(0.2, 0.5))
 
         details = self.driver.find_elements_by_xpath("//span[@dir]")
-        for i in range(len(details)):
-            detail = details[i].text
-            if not item_data.get("published") and KEYWORDS["published"] in detail:
-                if KEYWORDS["day"] in detail:  # if published less than a week ago
-                    item_data["published"] = int(detail[20])
-                elif KEYWORDS["week"] in detail:
-                    # if published more than a week ago, we use 8 as default
-                    item_data["published"] = 8
-                else:
-                    # if published less than a day ago, we use 0 as default
-                    item_data["published"] = 0
-                # Now let's transform this into a date
-                item_data["published"] = (
-                    date.today() - timedelta(days=item_data["published"])
-                ).isoformat()
-            if not item_data.get("price") and KEYWORDS["price"] in detail:
-                try:
+        try:
+            for i in range(len(details)):
+                detail = details[i].text
+                if not item_data.get("published") and KEYWORDS["published"] in detail:
+                    if KEYWORDS["day"] in detail:  # if published less than a week ago
+                        item_data["published"] = int(detail[20])
+                    elif KEYWORDS["week"] in detail:
+                        # if published more than a week ago, we use 8 as default
+                        item_data["published"] = 8
+                    else:
+                        # if published less than a day ago, we use 0 as default
+                        item_data["published"] = 0
+                    # Now let's transform this into a date
+                    item_data["published"] = (
+                        date.today() - timedelta(days=item_data["published"])
+                    ).isoformat()
+                if not item_data.get("price") and KEYWORDS["price"] in detail:
                     item_data["price"] = int(detail[:5].replace(" ", ""))
-                except:
-                    pass
-            elif not item_data.get("address") and KEYWORDS["address"] in detail:
-                item_data["address"] = detail.replace(KEYWORDS["montreal"], "").replace(
-                    ", ", ""
-                )
-            elif not item_data.get("surface") and KEYWORDS["surface(m2)"] in detail:
-                try:
+                elif not item_data.get("address") and KEYWORDS["address"] in detail:
+                    item_data["address"] = detail.replace(
+                        KEYWORDS["montreal"], ""
+                    ).replace(", ", "")
+                elif not item_data.get("surface") and KEYWORDS["surface(m2)"] in detail:
                     surface = int(detail[:4].replace(" ", ""))
                     # if the seller indicated square meters but is actually square feet
                     if surface > 200:
                         surface = round(surface / 10.764)
                     item_data["surface"] = surface
-                except:
-                    pass
-            elif not item_data.get("surface") and KEYWORDS["surface(ft2)"] in detail:
-                try:
+                elif (
+                    not item_data.get("surface") and KEYWORDS["surface(ft2)"] in detail
+                ):
                     item_data["surface"] = round(
                         int(detail[:4].replace(" ", "")) / 10.764
                     )
-                except:
-                    pass
-            elif not item_data.get("bedrooms") and KEYWORDS["bedrooms"] in detail:
-                try:
+                elif not item_data.get("bedrooms") and KEYWORDS["bedrooms"] in detail:
                     item_data["bedrooms"] = int(detail[0])
-                except:
-                    pass
-            elif not item_data.get("furnished") and detail in KEYWORDS["furnished"]:
-                item_data["furnished"] = detail
-            elif not item_data.get("description") and detail == KEYWORDS["description"]:
-                item_data["description"] = details[i + 1].text.replace(
-                    KEYWORDS["see_less"], ""
-                )
+                elif not item_data.get("furnished") and detail in KEYWORDS["furnished"]:
+                    item_data["furnished"] = detail
+                elif (
+                    not item_data.get("description")
+                    and detail == KEYWORDS["description"]
+                ):
+                    item_data["description"] = details[i + 1].text.replace(
+                        KEYWORDS["see_less"], ""
+                    )
+        except:
+            pass
 
         item_data["images"] = []
         try:
@@ -198,11 +194,15 @@ class Facebook:
 
     def scrape_items_details(self):
         if len(self.items_links):
+            cnt = 0
             for item_url in self.items_links:
                 item_data = self.scrape_item_details(item_url)
                 self.db["data"].append(
                     [item_data.get(feature, "") for feature in self.db["columns"]]
                 )
+                cnt += 1
+                if not cnt % 10:
+                    self.save_db()
         else:
             print("You should first scrape items links")
         return self.db
