@@ -68,7 +68,7 @@ class Facebook:
     def quit(self):
         self.driver.quit()
 
-    def scrape_items_links(
+    def get_items_links(
         self, min_price=1_200, max_price=1_750, min_bedrooms=2, scroll=10
     ):
         url1 = "/marketplace/montreal/propertyrentals?"
@@ -102,7 +102,85 @@ class Facebook:
 
         return self.items_links
 
-    def scrape_item_details(self, item_url):
+    def get_item_publication_day(self, detail):
+        if KEYWORDS["day"] in detail:  # if published less than a week ago
+            try:
+                publication_day = int(detail[20])
+            except:
+                print("Error while casting publication day")
+                return 0
+        elif KEYWORDS["week"] in detail:
+            # if published more than a week ago, we use 8 as default
+            publication_day = 8
+        else:
+            # if published less than a day ago, we use 0 as default
+            publication_day = 0
+        # Transform into a date
+        return (date.today() - timedelta(days=publication_day)).isoformat()
+
+    def get_item_price(self, detail):
+        try:
+            return int(detail[:5].replace(" ", ""))
+        except:
+            print("Error while casting price")
+            return 0
+
+    def get_item_address(self, detail):
+        return detail.replace(KEYWORDS["montreal"], "").replace(", ", "")
+
+    def get_item_surface(self, detail):
+        try:
+            surface = int(detail[:4].replace(" ", ""))
+        except:
+            print("Error while casting surface")
+            return 0
+        if KEYWORDS["surface(ft2)"] in detail or surface > 200:
+            # if square feet (considerong that a surface > 200 is necessarily in ft2)
+            surface = round(surface / 10.764)
+        return surface
+
+    def get_item_bedrooms(self, detail):
+        try:
+            return int(detail[0])
+        except:
+            print("Error while casting number of bedrooms")
+            return 0
+
+    def get_item_description(self, detail):
+        return detail.replace(KEYWORDS["see_less"], "")
+
+    def get_item_images(self):
+        images = []
+        cnt = 0
+        while cnt < 30:
+            try:
+                img = self.driver.find_element_by_xpath(
+                    "//img[@referrerpolicy='origin-when-cross-origin']"
+                )
+                img_url = img.get_attribute("src")
+                next_button = self.driver.find_element_by_xpath(
+                    "//div[@aria-label='Voir l’image suivante']"
+                )
+                if any(size in img_url for size in ("p720x720", "s960x960")):
+                    # If a picture of the apartment
+                    if img_url not in images:  # if unseen
+                        images.append(img_url)
+                    else:
+                        break  # if already seen
+            except:
+                print("Error while scraping images")
+            cnt += 1
+            next_button.click()
+            sleep(random.uniform(0.6, 1))
+        return images
+
+    def print_item_details(self, item_data):
+        for key, value in item_data.items():
+            if key != "images":
+                print(key + ":", value)
+        print("\n  " + "=" * 40 + "\n  " + "=" * 40 + "\n")
+
+    def get_item_details(self, item_url):
         item_data = {}
         item_data["url"] = item_url
         item_data["state"] = "new"
@@ -116,90 +194,35 @@ class Facebook:
         sleep(random.uniform(0.2, 0.5))
 
         details = self.driver.find_elements_by_xpath("//span[@dir]")
-        try:
-            for i in range(len(details)):
-                detail = details[i].text
-                if not item_data.get("published") and KEYWORDS["published"] in detail:
-                    if KEYWORDS["day"] in detail:  # if published less than a week ago
-                        item_data["published"] = int(detail[20])
-                    elif KEYWORDS["week"] in detail:
-                        # if published more than a week ago, we use 8 as default
-                        item_data["published"] = 8
-                    else:
-                        # if published less than a day ago, we use 0 as default
-                        item_data["published"] = 0
-                    # Now let's transform this into a date
-                    item_data["published"] = (
-                        date.today() - timedelta(days=item_data["published"])
-                    ).isoformat()
-                if not item_data.get("price") and KEYWORDS["price"] in detail:
-                    item_data["price"] = int(detail[:5].replace(" ", ""))
-                elif not item_data.get("address") and KEYWORDS["address"] in detail:
-                    item_data["address"] = detail.replace(
-                        KEYWORDS["montreal"], ""
-                    ).replace(", ", "")
-                elif not item_data.get("surface") and KEYWORDS["surface(m2)"] in detail:
-                    surface = int(detail[:4].replace(" ", ""))
-                    # if the seller indicated square meters but is actually square feet
-                    if surface > 200:
-                        surface = round(surface / 10.764)
-                    item_data["surface"] = surface
-                elif (
-                    not item_data.get("surface") and KEYWORDS["surface(ft2)"] in detail
-                ):
-                    item_data["surface"] = round(
-                        int(detail[:4].replace(" ", "")) / 10.764
-                    )
-                elif not item_data.get("bedrooms") and KEYWORDS["bedrooms"] in detail:
-                    item_data["bedrooms"] = int(detail[0])
-                elif not item_data.get("furnished") and detail in KEYWORDS["furnished"]:
-                    item_data["furnished"] = detail
-                elif (
-                    not item_data.get("description")
-                    and detail == KEYWORDS["description"]
-                ):
-                    item_data["description"] = details[i + 1].text.replace(
-                        KEYWORDS["see_less"], ""
-                    )
-        except:
-            pass
+        for i in range(len(details)):
+            detail = details[i].text
+            if not item_data.get("published") and KEYWORDS["published"] in detail:
+                item_data["published"] = self.get_item_publication_day(detail)
+            elif not item_data.get("price") and KEYWORDS["price"] in detail:
+                item_data["price"] = self.get_item_price(detail)
+            elif not item_data.get("address") and KEYWORDS["address"] in detail:
+                item_data["address"] = self.get_item_address(detail)
+            elif not item_data.get("surface") and (
+                KEYWORDS["surface(m2)"] in detail or KEYWORDS["surface(ft2)"] in detail
+            ):
+                item_data["surface"] = self.get_item_surface(detail)
+            elif not item_data.get("bedrooms") and KEYWORDS["bedrooms"] in detail:
+                item_data["bedrooms"] = self.get_item_bedrooms(detail)
+            elif not item_data.get("furnished") and detail in KEYWORDS["furnished"]:
+                item_data["furnished"] = detail
+            elif not item_data.get("description") and detail == KEYWORDS["description"]:
+                detail = details[i + 1].text
+                item_data["description"] = self.get_item_description(detail)
 
-        item_data["images"] = []
-        try:
-            cnt = 0
-            while cnt < 30:
-                img = self.driver.find_element_by_xpath(
-                    "//img[@referrerpolicy='origin-when-cross-origin']"
-                )
-                img_url = img.get_attribute("src")
-                next_button = self.driver.find_element_by_xpath(
-                    "//div[@aria-label='Voir l’image suivante']"
-                )
-                if any(size in img_url for size in ("p720x720", "s960x960")):
-                    # If a picture of the apartment
-                    if img_url not in item_data["images"]:
-                        # if unseen
-                        item_data["images"].append(img_url)
-                    else:
-                        break  # if already seen
-                next_button.click()
-                cnt += 1
-                sleep(random.uniform(0.6, 1))
-        except:
-            pass
-
-        for key, value in item_data.items():
-            if key != "images":
-                print(key + ":", value)
-        print("\n  " + "=" * 40 + "\n  " + "=" * 40 + "\n")
-
+        item_data["images"] = self.get_item_images()
+        self.print_item_details(item_data)
         return item_data
 
-    def scrape_items_details(self):
+    def get_items_details(self):
         if len(self.items_links):
             cnt = 0
             for item_url in self.items_links:
-                item_data = self.scrape_item_details(item_url)
+                item_data = self.get_item_details(item_url)
                 self.db["data"].append(
                     [item_data.get(feature, "") for feature in self.db["columns"]]
                 )
@@ -240,10 +263,10 @@ class Facebook:
 if __name__ == "__main__":
     fb = Facebook()
     fb.log_in()
-    fb.scrape_items_links(scroll=100)
+    fb.get_items_links(scroll=100)
     fb.quit()
     fb.load_driver()
-    fb.scrape_items_details()
+    fb.get_items_details()
     fb.save_db()
     fb.quit()
 
