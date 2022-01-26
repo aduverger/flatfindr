@@ -44,7 +44,7 @@ class Facebook:
         )
 
         self.main_url = "https://www.facebook.com"
-        self.items_links = []
+        self.items_links = set()
         self.load_db()
 
     def log_in(self):
@@ -95,7 +95,7 @@ class Facebook:
                     item_url = item_url[: item_url.find("?")]
                     # If this item has never been scraped before, we add it
                     if item_url not in seen_links:
-                        self.items_links.append(item_url)
+                        self.items_links.add(item_url)
             except:
                 pass
 
