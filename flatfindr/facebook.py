@@ -231,6 +231,8 @@ class Facebook:
         ):
             # If published more than a week ago, we are not interested by this ads
             item_data["state"] = "NI"
+            item_data["description"] = ""
+            item_data["images"] = []
         else:
             item_data["state"] = "new"
             item_data["images"] = self.get_item_images()
