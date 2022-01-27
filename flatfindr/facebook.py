@@ -30,7 +30,7 @@ class Facebook:
         self.db_path = db_path
         self.load_driver()
         self.main_url = "https://www.facebook.com"
-        self.items_links = set()
+        self.items_links = []
         self.load_db()
 
     def load_driver(self):
@@ -51,6 +51,9 @@ class Facebook:
             ),
         )
 
+    def quit_driver(self):
+        self.driver.quit()
+
     def log_in(self):
         self.driver.get(self.main_url)
         try:
@@ -68,17 +71,21 @@ class Facebook:
                 "Some exception occurred while trying to find username or password field"
             )
 
-    def quit(self):
-        self.driver.quit()
-
     def get_items_links(
-        self, min_price=1_200, max_price=1_750, min_bedrooms=2, scroll=10
+        self,
+        min_price=1_200,
+        max_price=1_750,
+        min_bedrooms=2,
+        lat=45.5254,
+        lng=-73.5724,
+        radius=2,
+        scroll=10,
     ):
-        url1 = "/marketplace/montreal/propertyrentals?"
-        url2 = f"minPrice={min_price}&maxPrice={max_price}"
-        url3 = f"&minBedrooms={min_bedrooms}"
-        url4 = "&exact=false&latitude=45.5254&longitude=-73.5724&radius=2"
-        self.driver.get(self.main_url + url1 + url2 + url3 + url4)
+        rentals = "/marketplace/montreal/propertyrentals?"
+        price = f"minPrice={min_price}&maxPrice={max_price}"
+        bedrooms = f"&minBedrooms={min_bedrooms}"
+        pos = f"&exact=false&latitude={lat}&longitude={lng}&radius={radius}"
+        self.driver.get(self.main_url + rentals + price + bedrooms + pos)
 
         seen_links = [item_data[0] for item_data in self.db["data"]]
 
@@ -98,8 +105,8 @@ class Facebook:
                 if "/marketplace/item/" in item_url:
                     item_url = item_url[: item_url.find("?")]
                     # If this item has never been scraped before, we add it
-                    if item_url not in seen_links:
-                        self.items_links.add(item_url)
+                    if item_url not in seen_links and item_url not in self.items_links:
+                        self.items_links.append(item_url)
             except:
                 pass
 
@@ -161,9 +168,6 @@ class Facebook:
                     "//img[@referrerpolicy='origin-when-cross-origin']"
                 )
                 img_url = img.get_attribute("src")
-                next_button = self.driver.find_element_by_xpath(
-                    "//div[@aria-label='Voir l’image suivante']"
-                )
                 if any(size in img_url for size in ("p720x720", "s960x960")):
                     # If a picture of the apartment
                     if img_url not in images:  # if unseen
@@ -173,8 +177,14 @@ class Facebook:
             except:
                 print("Error while scraping images")
             cnt += 1
-            next_button.click()
-            sleep(random.uniform(0.6, 1))
+            try:
+                next_button = self.driver.find_element_by_xpath(
+                    f"//div[@aria-label='{KEYWORDS['next_img']}']"
+                )
+                next_button.click()
+                sleep(random.uniform(0.6, 1))
+            except:  # only 1 picture for this ad so there is no next button
+                break
         return images
 
     def print_item_details(self, item_data):
@@ -216,7 +226,7 @@ class Facebook:
                 item_data["description"] = self.get_item_description(detail)
 
         if (
-            item_data["published"]
+            item_data.get("published")
             == (date.today() - timedelta(days=ONE_WEEK)).isoformat()
         ):
             # If published more than a week ago, we are not interested by this ads
@@ -271,14 +281,20 @@ class Facebook:
 
 if __name__ == "__main__":
     fb = Facebook()
-
     fb.log_in()
-    fb.get_items_links(scroll=30)
-    fb.quit()
-    fb.load_driver()
+
+    fb.get_items_links(
+        min_price=1_200,
+        max_price=1_750,
+        min_bedrooms=2,
+        lat=45.5254,
+        lng=-73.5724,
+        radius=2,
+        scroll=15,
+    )
+    # fb.get_item_details("https://www.facebook.com/marketplace/item/255094690033809/")
     fb.get_items_details()
+
     fb.save_db()
+    fb.quit_driver()
 
-    # fb.get_item_details("https://www.facebook.com/marketplace/item/633005807697219/")
-
-    fb.quit()
