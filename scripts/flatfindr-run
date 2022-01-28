@@ -21,4 +21,4 @@ while True:
     fb.save_db()
     fb.quit_driver()
 
-    sleep(random(55, 65) * 60)
+    sleep(random.uniform(55, 65) * 60)
