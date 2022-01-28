@@ -1,2 +1,24 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+
+from flatfindr.facebook import Facebook
+import random
+from time import sleep
+
+while True:
+    fb = Facebook()
+    fb.log_in()
+    fb.get_items_links(
+        min_price=1_200,
+        max_price=1_750,
+        min_bedrooms=2,
+        lat=45.5254,
+        lng=-73.5724,
+        radius=2,
+        scroll=15,
+    )
+    fb.get_items_details()
+    fb.save_db()
+    fb.quit_driver()
+
+    sleep(random(55, 65) * 60)

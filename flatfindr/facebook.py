@@ -252,6 +252,8 @@ class Facebook:
                     self.save_db()
         else:
             print("You should first scrape items links")
+
+        self.items_links = []
         return self.db
 
     def load_db(self):
