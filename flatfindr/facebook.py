@@ -191,7 +191,7 @@ class Facebook:
         for key, value in item_data.items():
             if key != "images":
                 print(key + ":", value)
-        print("\n  " + "=" * 40 + "\n  " + "=" * 40 + "\n")
+        return "\n  " + "=" * 40 + "\n  " + "=" * 40 + "\n"
 
     def is_old(self, item_data):
         return (
