@@ -187,11 +187,14 @@ class Facebook:
                 break
         return images
 
-    def item_details_to_string(self, item_data):
+    def item_details_to_string(self, item_data, for_alfred=False):
+        sentence = ""
         for key, value in item_data.items():
             if key != "images":
-                print(key + ":", value)
-        return "\n  " + "=" * 40 + "\n  " + "=" * 40 + "\n"
+                sentence += f"{key}: {value} \n"
+        if not for_alfred:
+            sentence += "\n  " + "=" * 40 + "\n  " + "=" * 40 + "\n"
+        return sentence
 
     def is_old(self, item_data):
         return (
@@ -271,7 +274,8 @@ class Facebook:
             print(self.item_details_to_string(item_data))
         return item_data
 
-    def get_items_details(self):
+    def get_items_details(self, for_alfred=False):
+        items_details_strings = []
         if len(self.items_links):
             cnt = 0
             for item_url in self.items_links[:MAX_ITEMS]:
@@ -279,6 +283,11 @@ class Facebook:
                 self.db["data"].append(
                     [item_data.get(feature, "") for feature in self.db["columns"]]
                 )
+                if item_data.get("state") == "new":
+                    # If the ad is interesting, we add its string description for the bot to display
+                    items_details_strings.append(
+                        self.item_details_to_string(item_data, for_alfred=for_alfred)
+                    )
                 cnt += 1
                 if not cnt % 10:
                     self.save_db()
@@ -287,7 +296,7 @@ class Facebook:
 
         self.save_db()
         self.items_links = []
-        return self.db
+        return items_details_strings
 
     def load_db(self):
         if os.path.isfile(self.db_path):  # if the db's json exists, load it

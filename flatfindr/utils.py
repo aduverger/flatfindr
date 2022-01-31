@@ -32,6 +32,5 @@ def make_img_clickable(vals):
 
 
 def make_address_clickable(val):
-    # TODO Deal with `'` in the address
     href = f"""https://www.google.com/maps/place/{val.replace(" ", "+").replace("'", "+")},+Montr%C3%A9al,+QC"""
     return f"<a target='_blank' href='{href}'>{val}</a>"
