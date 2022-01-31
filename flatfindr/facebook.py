@@ -239,6 +239,18 @@ class Facebook:
             self.print_item_details(item_data)
         return item_data
 
+    def is_old(self, item_data):
+        pass
+
+    def is_swap(self, item_data):
+        pass
+
+    def is_duplicate(self, item_data):
+        pass
+
+    def is_first_floor(self, item_data):
+        pass
+
     def get_items_details(self):
         if len(self.items_links):
             cnt = 0
@@ -281,6 +293,9 @@ class Facebook:
     def save_db(self):
         with open(self.db_path, "w") as db_file:
             json.dump(self.db, db_file)
+
+    def upgrade_db(self):
+        pass
 
 
 if __name__ == "__main__":
