@@ -193,6 +193,34 @@ class Facebook:
                 print(key + ":", value)
         print("\n  " + "=" * 40 + "\n  " + "=" * 40 + "\n")
 
+    def is_old(self, item_data):
+        return (
+            item_data.get("published")
+            == (date.today() - timedelta(days=ONE_WEEK)).isoformat()
+        )
+
+    def is_duplicate(self, item_data):
+        all_description = [data[-1] for data in self.db["data"] if data[-1] != ""]
+        return item_data.get("description") in all_description
+
+    def is_swap(self, item_data):
+        return any(
+            swap in item_data.get("description", "").lower()
+            for swap in ("swap", "transfer", "échange", "exchange")
+        )
+
+    def is_first_floor(self, item_data):
+        return any(
+            ff in item_data.get("description", "").lower()
+            for ff in (
+                "ground floor",
+                "first floor",
+                "rdc",
+                "rez-de-chaussée",
+                "rez de chaussée",
+            )
+        )
+
     def get_item_details(self, item_url, remove_swap=True, remove_first_floor=True):
         item_data = {}
         item_data["url"] = item_url
@@ -243,34 +271,6 @@ class Facebook:
             print(self.item_details_to_string(item_data))
         return item_data
 
-    def is_old(self, item_data):
-        return (
-            item_data.get("published")
-            == (date.today() - timedelta(days=ONE_WEEK)).isoformat()
-        )
-
-    def is_duplicate(self, item_data):
-        all_description = [data[-1] for data in self.db["data"] if data[-1] != ""]
-        return item_data.get("description") in all_description
-
-    def is_swap(self, item_data):
-        return any(
-            swap in item_data.get("description", "").lower()
-            for swap in ("swap", "transfer", "échange", "exchange")
-        )
-
-    def is_first_floor(self, item_data):
-        return any(
-            ff in item_data.get("description", "").lower()
-            for ff in (
-                "ground floor",
-                "first floor",
-                "rdc",
-                "rez-de-chaussée",
-                "rez de chaussée",
-            )
-        )
-
     def get_items_details(self):
         if len(self.items_links):
             cnt = 0
@@ -283,8 +283,9 @@ class Facebook:
                 if not cnt % 10:
                     self.save_db()
         else:
-            print("You should first scrape items links")
+            print("You should first get items links")
 
+        self.save_db()
         self.items_links = []
         return self.db
 

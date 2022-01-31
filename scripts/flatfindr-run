@@ -15,10 +15,9 @@ while True:
         lat=45.5254,
         lng=-73.5724,
         radius=2,
-        scroll=15,
+        scroll=10,
     )
     fb.get_items_details()
-    fb.save_db()
     fb.quit_driver()
 
-    sleep(random.uniform(55, 65) * 60)
+    sleep(random.uniform(25, 35) * 60)
