@@ -87,7 +87,7 @@ class Facebook:
         pos = f"&exact=false&latitude={lat}&longitude={lng}&radius={radius}"
         self.driver.get(self.main_url + rentals + price + bedrooms + pos)
 
-        seen_links = [item_data[0] for item_data in self.db["data"]]
+        seen_links = [data[0] for data in self.db["data"]]
 
         for _ in range(scroll):
             try:
