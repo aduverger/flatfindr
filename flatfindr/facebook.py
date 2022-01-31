@@ -145,7 +145,7 @@ class Facebook:
             print("Error while casting surface")
             return 0
         if KEYWORDS["surface(ft2)"] in detail or surface > 200:
-            # if square feet (considerong that a surface > 200 is necessarily in ft2)
+            # if square feet (considering that a surface > 200 is necessarily in ft2)
             surface = round(surface / 10.764)
         return surface
 
@@ -193,7 +193,7 @@ class Facebook:
                 print(key + ":", value)
         print("\n  " + "=" * 40 + "\n  " + "=" * 40 + "\n")
 
-    def get_item_details(self, item_url):
+    def get_item_details(self, item_url, remove_swap=True, remove_first_floor=True):
         item_data = {}
         item_data["url"] = item_url
         self.driver.get(item_url)
@@ -228,9 +228,9 @@ class Facebook:
         if any(
             (
                 self.is_old(item_data),
-                self.is_swap(item_data),
                 self.is_duplicate(item_data),
-                self.is_first_floor(item_data),
+                self.is_swap(item_data) and remove_swap,
+                self.is_first_floor(item_data) and remove_first_floor,
             )
         ):
             # We are not interested by this ads
@@ -249,20 +249,26 @@ class Facebook:
             == (date.today() - timedelta(days=ONE_WEEK)).isoformat()
         )
 
+    def is_duplicate(self, item_data):
+        all_description = [data[-1] for data in self.db["data"] if data[-1] != ""]
+        return item_data.get("description") in all_description
+
     def is_swap(self, item_data):
         return any(
             swap in item_data.get("description", "").lower()
             for swap in ("swap", "transfer", "échange", "exchange")
         )
 
-    def is_duplicate(self, item_data):
-        all_description = [data[-1] for data in self.db["data"] if data[-1] != ""]
-        return item_data.get("description") in all_description
-
     def is_first_floor(self, item_data):
         return any(
             ff in item_data.get("description", "").lower()
-            for ff in ("ground floor", "first floor", "rdc", "rez-de-chaussée")
+            for ff in (
+                "ground floor",
+                "first floor",
+                "rdc",
+                "rez-de-chaussée",
+                "rez de chaussée",
+            )
         )
 
     def get_items_details(self):
