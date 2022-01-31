@@ -44,23 +44,23 @@ def help(update, context):
 
 def run(update, context):
     """Run the flatfindr script"""
-    # while True:
-    fb = Facebook()
-    fb.log_in()
-    fb.get_items_links(
-        min_price=1_200,
-        max_price=1_750,
-        min_bedrooms=2,
-        lat=45.5254,
-        lng=-73.5724,
-        radius=2,
-        scroll=10,
-    )
-    ads_to_display = fb.get_items_details(for_alfred=True)
-    fb.quit_driver()
-    for ad in ads_to_display:
-        update.message.reply_text(ad)
-    # sleep(random.uniform(25, 35) * 60)
+    while True:
+        fb = Facebook()
+        fb.log_in()
+        fb.get_items_links(
+            min_price=1_200,
+            max_price=1_750,
+            min_bedrooms=2,
+            lat=45.5254,
+            lng=-73.5724,
+            radius=2,
+            scroll=10,
+        )
+        ads_to_display = fb.get_items_details(for_alfred=True)
+        fb.quit_driver()
+        for ad in ads_to_display:
+            update.message.reply_text(ad)
+        sleep(random.uniform(25, 35) * 60)
 
 
 def echo(update, context):
