@@ -187,7 +187,7 @@ class Facebook:
                 break
         return images
 
-    def print_item_details(self, item_data):
+    def item_details_to_string(self, item_data):
         for key, value in item_data.items():
             if key != "images":
                 print(key + ":", value)
@@ -225,31 +225,45 @@ class Facebook:
                 detail = details[i + 1].text
                 item_data["description"] = self.get_item_description(detail)
 
-        if (
-            item_data.get("published")
-            == (date.today() - timedelta(days=ONE_WEEK)).isoformat()
+        if any(
+            (
+                self.is_old(item_data),
+                self.is_swap(item_data),
+                self.is_duplicate(item_data),
+                self.is_first_floor(item_data),
+            )
         ):
-            # If published more than a week ago, we are not interested by this ads
+            # We are not interested by this ads
             item_data["state"] = "NI"
             item_data["description"] = ""
             item_data["images"] = []
         else:
             item_data["state"] = "new"
             item_data["images"] = self.get_item_images()
-            self.print_item_details(item_data)
+            print(self.item_details_to_string(item_data))
         return item_data
 
     def is_old(self, item_data):
-        pass
+        return (
+            item_data.get("published")
+            == (date.today() - timedelta(days=ONE_WEEK)).isoformat()
+        )
 
     def is_swap(self, item_data):
-        pass
+        return any(
+            swap in item_data.get("description", "").lower()
+            for swap in ("swap", "transfer", "échange", "exchange")
+        )
 
     def is_duplicate(self, item_data):
-        pass
+        all_description = [data[-1] for data in self.db["data"] if data[-1] != ""]
+        return item_data.get("description") in all_description
 
     def is_first_floor(self, item_data):
-        pass
+        return any(
+            ff in item_data.get("description", "").lower()
+            for ff in ("ground floor", "first floor", "rdc", "rez-de-chaussée")
+        )
 
     def get_items_details(self):
         if len(self.items_links):
