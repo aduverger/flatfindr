@@ -41,7 +41,7 @@ def start(update, context):
 def run(update, context):
     """Run the flatfindr script"""
     while True:
-        fb = Facebook()
+        fb = Facebook(headless=True)
         fb.log_in()
         fb.get_items_links(
             min_price=1_200,
