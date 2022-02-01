@@ -58,9 +58,6 @@ class Scraper:
     def quit_driver(self):
         self.driver.quit()
 
-    def log_in(self):
-        pass
-
     def save_cookies(self):
         cookies_path = os.path.join(
             os.path.dirname(os.path.dirname(os.path.realpath(__file__))),
@@ -79,40 +76,6 @@ class Scraper:
             cookies = pickle.load(cookies_file)
         for cookie in cookies:
             self.driver.add_cookie(cookie)
-
-    def get_items_links(
-        self,
-        min_price=1_200,
-        max_price=1_750,
-        min_bedrooms=2,
-        lat=45.5254,
-        lng=-73.5724,
-        radius=2,
-        scroll=10,
-    ):
-        return self.items_links
-
-    def get_item_publication_day(self, detail):
-        return date.today().isoformat()
-
-    def get_item_price(self, detail):
-        return 0
-
-    def get_item_address(self, detail):
-        return detail.replace(KEYWORDS["montreal"], "").replace(", ", "")
-
-    def get_item_surface(self, detail):
-        return 0
-
-    def get_item_bedrooms(self, detail):
-        return 0
-
-    def get_item_description(self, detail):
-        return ""
-
-    def get_item_images(self):
-        images = []
-        return images
 
     def item_details_to_string(self, item_details):
         sentence = ""
@@ -169,7 +132,7 @@ class Scraper:
             )
         )
 
-    def get_item_details(self, item_url, remove_swap=True, remove_first_floor=True):
+    def get_item_details(self, item_url):
         item_details = {}
         item_details["url"] = item_url
         self.driver.get(item_url)
@@ -227,43 +190,3 @@ class Scraper:
 
     def upgrade_db(self):
         pass
-
-
-def main(
-    headless=False,
-    to_html=False,
-    min_price=1_200,
-    max_price=1_750,
-    min_bedrooms=2,
-    lat=45.5254,
-    lng=-73.5724,
-    radius=2,
-    scroll=15,
-):
-    sp = Scraper(headless=headless)
-    # cookies_path = os.path.join(
-    #     os.path.dirname(os.path.dirname(os.path.realpath(__file__))),
-    #     "raw_data/cookies.pkl",
-    # )
-    # if not os.path.isfile(cookies_path):
-    #     sp.log_in()
-    # else:
-    #     sp.load_cookies()
-    sp.log_in()
-    sp.get_items_links(
-        min_price=min_price,
-        max_price=max_price,
-        min_bedrooms=min_bedrooms,
-        lat=lat,
-        lng=lng,
-        radius=radius,
-        scroll=scroll,
-    )
-    items_details = sp.get_items_details(to_html=to_html)
-    sp.save_db()
-    sp.quit_driver()
-    return items_details
-
-
-if __name__ == "__main__":
-    main()

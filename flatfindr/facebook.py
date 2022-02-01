@@ -1,17 +1,11 @@
 # facebook marketplace
-import json
 import os
 import random
-import pickle
 from datetime import date, timedelta
 from time import sleep
 
-from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
-
-from flatfindr.logins import LOGINS
-from flatfindr.utils import KEYWORDS
 from flatfindr.scraper import Scraper
+from flatfindr.utils import KEYWORDS
 
 ONE_WEEK = 8
 MAX_ITEMS = 30
@@ -213,7 +207,6 @@ class Facebook(Scraper):
         else:
             item_details["state"] = "new"
             item_details["images"] = self.get_item_images()
-            print(self.item_details_to_string(item_details))
         return item_details
 
 
@@ -254,4 +247,4 @@ def main(
 
 
 if __name__ == "__main__":
-    main()
+    print(main())
