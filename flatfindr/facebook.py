@@ -187,13 +187,31 @@ class Facebook:
                 break
         return images
 
-    def item_details_to_string(self, item_data, for_alfred=False):
+    def item_details_to_string(self, item_data):
         sentence = ""
         for key, value in item_data.items():
-            if key != "images":
+            if key not in ("images", "state"):
                 sentence += f"{key}: {value} \n"
-        if not for_alfred:
-            sentence += "\n  " + "=" * 40 + "\n  " + "=" * 40 + "\n"
+        sentence += "\n  " + "=" * 40 + "\n  " + "=" * 40 + "\n"
+        return sentence
+
+    def item_details_to_html(self, item_data):
+        sentence = ""
+        for key, value in item_data.items():
+            if key not in ("images", "state"):
+                if key == "url":
+                    sentence += f"{key}: <a target='_blank' href='{value}'>{value[-15:-1]}</a> \n"
+                elif key == "address":
+                    href = f"""https://www.google.com/maps/place/{value.replace(" ", "+").replace("'", "+")},+Montr%C3%A9al,+QC"""
+                    sentence += (
+                        f"{key}: <a target='_blank' href='{href}'>{value}</a> \n"
+                    )
+                elif key == "price":
+                    sentence += f"{key}: {value} € \n"
+                elif key == "surface":
+                    sentence += f"{key}: {value} m² \n"
+                else:
+                    sentence += f"{key}: {value} \n"
         return sentence
 
     def is_old(self, item_data):
@@ -285,14 +303,19 @@ class Facebook:
                 )
                 if item_data.get("state") == "new":
                     # If the ad is interesting, we add its string description for the bot to display
-                    items_details_strings.append(
-                        self.item_details_to_string(item_data, for_alfred=for_alfred)
-                    )
+                    if for_alfred:
+                        items_details_strings.append(
+                            self.item_details_to_html(item_data)
+                        )
+                    else:
+                        items_details_strings.append(
+                            self.item_details_to_string(item_data)
+                        )
                 cnt += 1
                 if not cnt % 10:
                     self.save_db()
         else:
-            print("You should first get items links")
+            print("No new ads to look for")
 
         self.save_db()
         self.items_links = []

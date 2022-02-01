@@ -21,6 +21,7 @@ from time import sleep
 from flatfindr.facebook import Facebook
 from flatfindr.logins import LOGINS
 from telegram.ext import CommandHandler, Filters, MessageHandler, Updater
+from telegram import ParseMode
 
 # Enable logging
 logging.basicConfig(
@@ -35,11 +36,6 @@ logger = logging.getLogger(__name__)
 def start(update, context):
     """Send a message when the command /start is issued."""
     update.message.reply_text("Hi!")
-
-
-def help(update, context):
-    """Send a message when the command /help is issued."""
-    update.message.reply_text("Call Jean-Jacques")
 
 
 def run(update, context):
@@ -59,8 +55,27 @@ def run(update, context):
         ads_to_display = fb.get_items_details(for_alfred=True)
         fb.quit_driver()
         for ad in ads_to_display:
-            update.message.reply_text(ad)
+            update.message.reply_text(ad, parse_mode=ParseMode.HTML)
         sleep(random.uniform(25, 35) * 60)
+
+
+def test(update, context):
+    fb = Facebook()
+    item_data = {
+        "url": "https://www.facebook.com/marketplace/item/296710065762366/",
+        "state": "new",
+        "published": "2022-01-20",
+        "price": 1600,
+        "bedrooms": 2,
+        "surface": 70,
+        "address": "2212 Rue d'Iberville",
+        "furnished": "Non meublé",
+        "images": [],
+        "description": "Superbe 4 1/2 mise \u00e0 neuf, moderne et au go\u00fbt du jour dans le magnifique quartier de Centre-Sud-Ville-Marie. Situ\u00e9 \u00e0 5 minutes \u00e0 pied du parc Lafontaine et multiples \u00e9piceries. Parc pour enfant et chien situ\u00e9e au bout de la rue. Unit\u00e9 disponible pour le 1ER MARS 2022.\nVoici ce que cette unit\u00e9 inclut:\n- 1er \u00e9tage avec entr\u00e9e ind\u00e9pendante \n- 2 chambres ferm\u00e9es (peuvent \u00e9galement servir de bureau)\n- 1 salle de bain enti\u00e8rement r\u00e9nov\u00e9\n- 1 Stationnement int\u00e9rieur avec rangement unique\n- TOUT INCLU: wifi haute vitesse illimit\u00e9 60Mbit/s ind\u00e9pendants, \u00e9lectricit\u00e9\n- Air climatis\u00e9 mural dans la chambre \u00e0 coucher assez fort pour climatiser tout l'appartement\n-Laveuse/S\u00e9cheuse dans la salle de bain avec rangement\n-\u00c9lectrom\u00e9nagers et meubles INCLUS selon ce que vous souhaitez avoir et ne pas avoir\nUne enqu\u00eate de cr\u00e9dit sera requise pour toutes personnes qui voudront faire une application.\nPour plus d'informations, SVP me contacter Patrice-Alain Fran\u00e7ois [hidden information] ou par courriel au [hidden information] ",
+    }
+    update.message.reply_text(
+        fb.item_details_to_html(item_data), parse_mode=ParseMode.HTML
+    )
 
 
 def echo(update, context):
@@ -85,8 +100,8 @@ def main():
 
     # on different commands - answer in Telegram
     dp.add_handler(CommandHandler("start", start))
-    dp.add_handler(CommandHandler("help", help))
     dp.add_handler(CommandHandler("run", run))
+    dp.add_handler(CommandHandler("test", test))
 
     # on noncommand i.e message - echo the message on Telegram
     dp.add_handler(MessageHandler(Filters.text, echo))
