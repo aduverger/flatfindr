@@ -3,11 +3,20 @@
 
 from flatfindr.facebook import Facebook
 import random
+import os
 from time import sleep
 
 while True:
     fb = Facebook()
-    fb.log_in()
+    cookies_path = os.path.join(
+        os.path.dirname(os.path.dirname(os.path.realpath(__file__))),
+        "raw_data/cookies.pkl",
+    )
+    if not os.path.isfile(cookies_path):
+        fb.log_in()
+    else:
+        fb.load_cookies()
+
     fb.get_items_links(
         min_price=1_200,
         max_price=1_750,

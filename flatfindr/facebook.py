@@ -2,6 +2,7 @@
 import json
 import os
 import random
+import pickle
 from datetime import date, timedelta
 from time import sleep
 
@@ -69,10 +70,30 @@ class Facebook:
             login_button = self.driver.find_element_by_xpath("//*[@type='submit']")
             login_button.click()
             sleep(random.uniform(2, 3))
+            self.save_cookies()
         except Exception:
             print(
                 "Some exception occurred while trying to find username or password field"
             )
+
+    def save_cookies(self):
+        cookies_path = os.path.join(
+            os.path.dirname(os.path.dirname(os.path.realpath(__file__))),
+            "raw_data/cookies.pkl",
+        )
+        with open(cookies_path, "wb") as cookies_file:
+            pickle.dump(self.driver.get_cookies(), cookies_file)
+
+    def load_cookies(self):
+        self.driver.get(self.main_url)
+        cookies_path = os.path.join(
+            os.path.dirname(os.path.dirname(os.path.realpath(__file__))),
+            "raw_data/cookies.pkl",
+        )
+        with open(cookies_path, "rb") as cookies_file:
+            cookies = pickle.load(cookies_file)
+        for cookie in cookies:
+            self.driver.add_cookie(cookie)
 
     def get_items_links(
         self,
@@ -356,7 +377,14 @@ class Facebook:
 
 if __name__ == "__main__":
     fb = Facebook()
-    fb.log_in()
+    cookies_path = os.path.join(
+        os.path.dirname(os.path.dirname(os.path.realpath(__file__))),
+        "raw_data/cookies.pkl",
+    )
+    if not os.path.isfile(cookies_path):
+        fb.log_in()
+    else:
+        fb.load_cookies()
 
     fb.get_items_links(
         min_price=1_200,
