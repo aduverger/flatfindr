@@ -61,6 +61,7 @@ def run(update, context):
 
 def test(update, context):
     fb = Facebook()
+    fb.quit_driver()
     item_data = {
         "url": "https://www.facebook.com/marketplace/item/296710065762366/",
         "state": "new",
@@ -71,7 +72,7 @@ def test(update, context):
         "address": "2212 Rue d'Iberville",
         "furnished": "Non meublé",
         "images": [],
-        "description": "Superbe 4 1/2 mise \u00e0 neuf, moderne et au go\u00fbt du jour dans le magnifique quartier de Centre-Sud-Ville-Marie. Situ\u00e9 \u00e0 5 minutes \u00e0 pied du parc Lafontaine et multiples \u00e9piceries. Parc pour enfant et chien situ\u00e9e au bout de la rue. Unit\u00e9 disponible pour le 1ER MARS 2022.\nVoici ce que cette unit\u00e9 inclut:\n- 1er \u00e9tage avec entr\u00e9e ind\u00e9pendante \n- 2 chambres ferm\u00e9es (peuvent \u00e9galement servir de bureau)\n- 1 salle de bain enti\u00e8rement r\u00e9nov\u00e9\n- 1 Stationnement int\u00e9rieur avec rangement unique\n- TOUT INCLU: wifi haute vitesse illimit\u00e9 60Mbit/s ind\u00e9pendants, \u00e9lectricit\u00e9\n- Air climatis\u00e9 mural dans la chambre \u00e0 coucher assez fort pour climatiser tout l'appartement\n-Laveuse/S\u00e9cheuse dans la salle de bain avec rangement\n-\u00c9lectrom\u00e9nagers et meubles INCLUS selon ce que vous souhaitez avoir et ne pas avoir\nUne enqu\u00eate de cr\u00e9dit sera requise pour toutes personnes qui voudront faire une application.\nPour plus d'informations, SVP me contacter Patrice-Alain Fran\u00e7ois [hidden information] ou par courriel au [hidden information] ",
+        "description": "Superbe 4 1/2 mise \u00e0 neuf, moderne et au go\u00fbt du jour dans le magnifique quartier de Centre-Sud-Ville-Marie.",
     }
     update.message.reply_text(
         fb.item_details_to_html(item_data), parse_mode=ParseMode.HTML
@@ -80,7 +81,11 @@ def test(update, context):
 
 def echo(update, context):
     """Echo the user message."""
-    update.message.reply_text(update.message.text)
+    message = update.message.text
+    if message.lower().strip() == "jeffrey":
+        update.message.reply_text("Remets nous des glaçons")
+    else:
+        update.message.reply_text(message)
 
 
 def error(update, context):
