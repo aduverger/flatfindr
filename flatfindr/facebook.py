@@ -18,6 +18,7 @@ MAX_ITEMS = 30
 class Facebook:
     def __init__(
         self,
+        headless=False,
         email=LOGINS["facebook"]["id"],
         password=LOGINS["facebook"]["pass"],
         db_path=os.path.join(
@@ -28,17 +29,19 @@ class Facebook:
         self.email = email
         self.password = password
         self.db_path = db_path
-        self.load_driver()
+        self.load_driver(headless=headless)
         self.main_url = "https://www.facebook.com"
         self.items_links = []
         self.load_db()
 
-    def load_driver(self):
+    def load_driver(self, headless=False):
         # Handle the 'Allow notifications box':
         option = Options()
         option.add_argument("--disable-infobars")
         option.add_argument("start-maximized")
         option.add_argument("--disable-extensions")
+        if headless:
+            option.add_argument("--headless")
         # Pass the argument 1 to allow and 2 to block
         option.add_experimental_option(
             "prefs", {"profile.default_content_setting_values.notifications": 2}

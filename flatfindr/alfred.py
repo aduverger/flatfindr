@@ -60,7 +60,7 @@ def run(update, context):
 
 
 def test(update, context):
-    fb = Facebook()
+    fb = Facebook(headless=True)
     fb.quit_driver()
     item_data = {
         "url": "https://www.facebook.com/marketplace/item/296710065762366/",
