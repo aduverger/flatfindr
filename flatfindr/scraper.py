@@ -99,7 +99,7 @@ class Scraper:
         return 0
 
     def get_item_address(self, detail):
-        return ""
+        return detail.replace(KEYWORDS["montreal"], "").replace(", ", "")
 
     def get_item_surface(self, detail):
         return 0
@@ -129,7 +129,7 @@ class Scraper:
                 if key == "url":
                     sentence += f"{key}: <a target='_blank' href='{value}'>{value[-15:-1]}</a> \n"
                 elif key == "address":
-                    href = f"""https://www.google.com/maps/place/{value.replace(" ", "+").replace("'", "+")},+Montr%C3%A9al,+QC"""
+                    href = f"""https://www.google.com/maps/place/{value.replace(" ", "+").replace("'", "+")},{KEYWORDS["gmaps"]}"""
                     sentence += (
                         f"{key}: <a target='_blank' href='{href}'>{value}</a> \n"
                     )
@@ -173,53 +173,6 @@ class Scraper:
         item_details = {}
         item_details["url"] = item_url
         self.driver.get(item_url)
-        # Click on 'see more' button to get the full description
-        buttons = self.driver.find_elements_by_xpath("//div[@role='button']")
-        _ = [
-            button.click() for button in buttons if button.text == KEYWORDS["see_more"]
-        ]
-        sleep(random.uniform(0.2, 0.5))
-
-        details = self.driver.find_elements_by_xpath("//span[@dir]")
-        for i in range(len(details)):
-            detail = details[i].text
-            if not item_details.get("published") and KEYWORDS["published"] in detail:
-                item_details["published"] = self.get_item_publication_day(detail)
-            elif not item_details.get("price") and KEYWORDS["price"] in detail:
-                item_details["price"] = self.get_item_price(detail)
-            elif not item_details.get("address") and KEYWORDS["address"] in detail:
-                item_details["address"] = self.get_item_address(detail)
-            elif not item_details.get("surface") and (
-                KEYWORDS["surface(m2)"] in detail or KEYWORDS["surface(ft2)"] in detail
-            ):
-                item_details["surface"] = self.get_item_surface(detail)
-            elif not item_details.get("bedrooms") and KEYWORDS["bedrooms"] in detail:
-                item_details["bedrooms"] = self.get_item_bedrooms(detail)
-            elif not item_details.get("furnished") and detail in KEYWORDS["furnished"]:
-                item_details["furnished"] = detail
-            elif (
-                not item_details.get("description")
-                and detail == KEYWORDS["description"]
-            ):
-                detail = details[i + 1].text
-                item_details["description"] = self.get_item_description(detail)
-
-        if any(
-            (
-                self.is_old(item_details),
-                self.is_duplicate(item_details),
-                self.is_swap(item_details) and remove_swap,
-                self.is_first_floor(item_details) and remove_first_floor,
-            )
-        ):
-            # We are not interested by this ads
-            item_details["state"] = "NI"
-            item_details["description"] = ""
-            item_details["images"] = []
-        else:
-            item_details["state"] = "new"
-            item_details["images"] = self.get_item_images()
-            print(self.item_details_to_string(item_details))
         return item_details
 
     def get_items_details(self, to_html=False):
@@ -287,17 +240,17 @@ def main(
     radius=2,
     scroll=15,
 ):
-    fb = Facebook(headless=headless)
+    sp = Scraper(headless=headless)
     # cookies_path = os.path.join(
     #     os.path.dirname(os.path.dirname(os.path.realpath(__file__))),
     #     "raw_data/cookies.pkl",
     # )
     # if not os.path.isfile(cookies_path):
-    #     fb.log_in()
+    #     sp.log_in()
     # else:
-    #     fb.load_cookies()
-    fb.log_in()
-    fb.get_items_links(
+    #     sp.load_cookies()
+    sp.log_in()
+    sp.get_items_links(
         min_price=min_price,
         max_price=max_price,
         min_bedrooms=min_bedrooms,
@@ -306,9 +259,9 @@ def main(
         radius=radius,
         scroll=scroll,
     )
-    items_details = fb.get_items_details(to_html=to_html)
-    fb.save_db()
-    fb.quit_driver()
+    items_details = sp.get_items_details(to_html=to_html)
+    sp.save_db()
+    sp.quit_driver()
     return items_details
 
 

@@ -10,6 +10,7 @@ KEYWORDS = {
     "day": "jours",
     "week": "semaine",
     "montreal": "Montréal, QC",
+    "gmaps": "+Montr%C3%A9al,+QC",
     "see_more": "Voir plus",
     "see_less": "Voir moins",
     "next_img": "Voir l’image suivante",
@@ -34,5 +35,5 @@ def make_img_clickable(vals):
 
 
 def make_address_clickable(val):
-    href = f"""https://www.google.com/maps/place/{val.replace(" ", "+").replace("'", "+")},+Montr%C3%A9al,+QC"""
+    href = f"""https://www.google.com/maps/place/{val.replace(" ", "+").replace("'", "+")},{KEYWORDS["gmaps"]}"""
     return f"<a target='_blank' href='{href}'>{val}</a>"
