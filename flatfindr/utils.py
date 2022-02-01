@@ -15,6 +15,8 @@ KEYWORDS = {
     "next_img": "Voir l’image suivante",
 }
 
+URL = {"facebook": "https://www.facebook.com"}
+
 
 def make_url_clickable(val):
     # target _blank to open new window
