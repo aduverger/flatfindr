@@ -16,9 +16,10 @@ bot.
 
 import logging
 import random
+import os
 from time import sleep
 
-from flatfindr.facebook import Facebook
+from flatfindr import facebook
 from flatfindr.logins import LOGINS
 from telegram.ext import CommandHandler, Filters, MessageHandler, Updater
 from telegram import ParseMode
@@ -41,26 +42,14 @@ def start(update, context):
 def run(update, context):
     """Run the flatfindr script"""
     while True:
-        fb = Facebook(headless=True)
-        fb.log_in()
-        fb.get_items_links(
-            min_price=1_200,
-            max_price=1_750,
-            min_bedrooms=2,
-            lat=45.5254,
-            lng=-73.5724,
-            radius=2,
-            scroll=10,
-        )
-        ads_to_display = fb.get_items_details(for_alfred=True)
-        fb.quit_driver()
+        ads_to_display = facebook.main(headless=True, to_html=True)
         for ad in ads_to_display:
             update.message.reply_text(ad, parse_mode=ParseMode.HTML)
         sleep(random.uniform(25, 35) * 60)
 
 
 def test(update, context):
-    fb = Facebook(headless=True)
+    fb = facebook.Facebook(headless=True)
     fb.quit_driver()
     item_data = {
         "url": "https://www.facebook.com/marketplace/item/296710065762366/",
