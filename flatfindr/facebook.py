@@ -8,7 +8,6 @@ from flatfindr.scraper import Scraper
 from flatfindr.utils import KEYWORDS
 
 ONE_WEEK = 8
-MAX_ITEMS = 30
 
 
 class Facebook(Scraper):

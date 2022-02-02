@@ -1,10 +1,8 @@
 # facebook marketplace
 import json
 import os
-import random
 import pickle
 from datetime import date, timedelta
-from time import sleep
 
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options

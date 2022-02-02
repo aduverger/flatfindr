@@ -8,7 +8,6 @@ from flatfindr.scraper import Scraper
 from flatfindr.utils import KEYWORDS
 
 ONE_WEEK = 8
-MAX_ITEMS = 30
 """ 
 An example subscraper class (heriting from Scraper) with all the method needed to be implemented to work properly within the flatfindr library
 One new website to scrap == One new subscraper class (e.g. Facebook, Kijiji, etc.)
