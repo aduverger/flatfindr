@@ -51,7 +51,7 @@ def run(update, context):
 def test(update, context):
     fb = facebook.Facebook(headless=True)
     fb.quit_driver()
-    item_data = {
+    item_details = {
         "url": "https://www.facebook.com/marketplace/item/296710065762366/",
         "state": "new",
         "published": "2022-01-20",
@@ -64,7 +64,7 @@ def test(update, context):
         "description": "Superbe 4 1/2 mise \u00e0 neuf, moderne et au go\u00fbt du jour dans le magnifique quartier de Centre-Sud-Ville-Marie.",
     }
     update.message.reply_text(
-        fb.item_details_to_html(item_data), parse_mode=ParseMode.HTML
+        fb.item_details_to_html(item_details), parse_mode=ParseMode.HTML
     )
 
 

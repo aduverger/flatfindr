@@ -158,9 +158,7 @@ class Facebook(Scraper):
         return images
 
     def get_item_details(self, item_url, remove_swap=True, remove_first_floor=True):
-        item_details = super().get_item_details(
-            item_url, remove_swap=remove_swap, remove_first_floor=remove_first_floor
-        )
+        item_details = super().get_item_details(item_url)
         # Click on 'see more' button to get the full description
         buttons = self.driver.find_elements_by_xpath("//div[@role='button']")
         _ = [
