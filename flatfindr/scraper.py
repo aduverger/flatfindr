@@ -108,7 +108,7 @@ class Scraper:
                         f"{key}: <a target='_blank' href='{href}'>{value}</a> \n"
                     )
                 elif key == "price":
-                    sentence += f"{key}: {value} € \n"
+                    sentence += f"{key}: {value} $ \n"
                 elif key == "surface":
                     sentence += f"{key}: {value} m² \n"
                 else:

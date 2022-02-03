@@ -17,8 +17,10 @@ bot.
 import logging
 import random
 import os
+import re
 from time import sleep
 
+from geopy.geocoders import Nominatim
 from flatfindr import facebook
 from flatfindr.logins import LOGINS
 from telegram import ParseMode, ReplyKeyboardMarkup, ReplyKeyboardRemove, Update
@@ -39,17 +41,17 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 
-LOCATION, GENDER, PHOTO, BIO = range(4)
+LOCATION, RADIUS, MIN_PRICE, MAX_PRICE, MIN_BEDROOMS = range(5)
 
 INFOS = {}
 
 
 def start(update: Update, context: CallbackContext) -> int:
-    """Starts the conversation and asks the user about their gender."""
+    """Starts the conversation and asks the user about its prefered position."""
     update.message.reply_text(
-        "Hi! My name is Alfred. I will help you find your next apartment."
+        "Hi! My name is Alfred. I will help you find your next apartment. "
         "Send /cancel to stop talking to me.\n\n"
-        "What is the position around which you are looking for an apartment?"
+        "What is the position around which you are looking for an apartment? "
         "Use the `share position` function from Telegram"
     )
 
@@ -57,62 +59,88 @@ def start(update: Update, context: CallbackContext) -> int:
 
 
 def location(update: Update, context: CallbackContext) -> int:
-    """Stores the location and asks for some info about the user."""
+    """Stores the location and asks for the radius."""
     user = update.message.from_user
     user_location = update.message.location
     logger.info(
         f"Location of {user.first_name}: {user_location.latitude} / {user_location.longitude}"
     )
+    INFOS["lat"] = user_location.latitude
+    INFOS["lng"] = user_location.longitude
+    geolocator = Nominatim(user_agent="geoapiExercises")
+    location = geolocator.reverse(f"{user_location.latitude},{user_location.longitude}")
     update.message.reply_text(
-        f"Maybe I can visit you sometime ! At last, tell me something about yourself."
+        f"Wooo I love {location.raw.get('address', {}).get('city', 'suburb')}! "
+        "What is the radius around this position?"
     )
 
-    return BIO
+    return RADIUS
 
 
-def gender(update: Update, context: CallbackContext) -> int:
-    """Stores the selected gender and asks for a photo."""
+def radius(update: Update, context: CallbackContext) -> int:
+    """Stores the radius and asks for the minimum price."""
     user = update.message.from_user
-    logger.info("Gender of %s: %s", user.first_name, update.message.text)
-    INFOS["gender"] = update.message.text
+    radius = re.findall(r"\d+", update.message.text)[0]
+    logger.info(f"Radius of {user.first_name}: {radius}")
+    INFOS["radius"] = int(radius)
+    update.message.reply_text("I see! What is your minimum monthly rent (in $CAD)?")
+
+    return MIN_PRICE
+
+
+def min_price(update: Update, context: CallbackContext) -> int:
+    """Stores the min price and asks for max price."""
+    user = update.message.from_user
+    min_price = re.findall(r"\d+", update.message.text)[0]
+    logger.info(f"min_price of {user.first_name}: {min_price}")
+    INFOS["min_price"] = int(min_price)
     update.message.reply_text(
-        "I see! Please send me a photo of yourself, "
-        "so I know what you look like, or send /skip if you don't want to.",
-        reply_markup=ReplyKeyboardRemove(),
+        "Wonderful! Now, what is your maximum monthly rent (in $CAD)?"
     )
 
-    return PHOTO
+    return MAX_PRICE
 
 
-def photo(update: Update, context: CallbackContext) -> int:
-    """Stores the photo and asks for a location."""
+def max_price(update: Update, context: CallbackContext) -> int:
+    """Stores the max price and asks for the min bedrooms."""
     user = update.message.from_user
-    photo_file = update.message.photo[-1].get_file()
-    photo_file.download("user_photo.jpg")
-    logger.info("Photo of %s: %s", user.first_name, "user_photo.jpg")
+    max_price = re.findall(r"\d+", update.message.text)[0]
+    logger.info(f"max_price of {user.first_name}: {max_price}")
+    INFOS["max_price"] = int(max_price)
     update.message.reply_text(
-        "Gorgeous! Now, send me your location please, or send /skip if you don't want to."
+        "Gorgeous! Now, tell me the minimum number of bedrooms you need."
     )
 
-    return LOCATION
+    return MIN_BEDROOMS
 
 
-def skip_photo(update: Update, context: CallbackContext) -> int:
-    """Skips the photo and asks for a location."""
+def min_bedrooms(update: Update, context: CallbackContext) -> int:
+    """Stores the max price and ends the conversation / run the script."""
     user = update.message.from_user
-    logger.info("User %s did not send a photo.", user.first_name)
-    update.message.reply_text(
-        "I bet you look great! Now, send me your location please, or send /skip."
+    min_bedrooms = re.findall(r"\d+", update.message.text)[0]
+    logger.info(f"min_bedrooms of {user.first_name}: {min_bedrooms}")
+    INFOS["min_bedrooms"] = int(min_bedrooms)
+    update.message.reply_text("Thank you! Now let me find one flat that match..")
+
+    """Run the flatfindr script for 1 item"""
+    ads_to_display = facebook.main(
+        headless=True,
+        to_html=True,
+        min_price=INFOS.get("min_price", 0),
+        max_price=INFOS.get("max_price", 5000),
+        min_bedrooms=INFOS.get("min_bedrooms", 1),
+        lat=INFOS.get("lat", 45.5254),
+        lng=INFOS.get("lng", -73.5724),
+        radius=INFOS.get("radius", 2),
+        scroll=0,
+        max_items=1,
     )
-
-    return LOCATION
-
-
-def bio(update: Update, context: CallbackContext) -> int:
-    """Stores the info about the user and ends the conversation."""
-    user = update.message.from_user
-    logger.info("Bio of %s: %s", user.first_name, update.message.text)
-    update.message.reply_text("Thank you! I hope we can talk again some day.")
+    if len(ads_to_display):
+        update.message.reply_text(ads_to_display[0], parse_mode=ParseMode.HTML)
+    else:
+        update.message.reply_text(
+            "Unfortunately, there is nothing on the marketplace for now!"
+        )
 
     return ConversationHandler.END
 
@@ -128,7 +156,7 @@ def cancel(update: Update, context: CallbackContext) -> int:
     return ConversationHandler.END
 
 
-def run_default(update, context):
+def run(update, context):
     """Run the flatfindr script"""
     while True:
         ads_to_display = facebook.main(headless=True, to_html=True)
@@ -157,10 +185,11 @@ def test(update, context):
     )
 
 
-def echo(update, context):
-    """Echo the user message."""
-    if update.message.text.lower().strip() == "jeffrey":
-        update.message.reply_text("Remets nous des glaçons")
+def help(update, context):
+    update.message.reply_text(
+        "/start - start a custom flat search"
+        "/run - run the default flat search for Montréal"
+    )
 
 
 def error(update, context):
@@ -183,12 +212,12 @@ def main():
         entry_points=[CommandHandler("start", start)],
         states={
             LOCATION: [MessageHandler(Filters.location, location)],
-            PHOTO: [
-                MessageHandler(Filters.photo, photo),
-                CommandHandler("skip", skip_photo),
+            RADIUS: [MessageHandler(Filters.regex(r"\d+"), radius)],
+            MIN_PRICE: [MessageHandler(Filters.regex(r"\d+"), min_price)],
+            MAX_PRICE: [MessageHandler(Filters.regex(r"\d+"), max_price)],
+            MIN_BEDROOMS: [
+                MessageHandler(Filters.regex(r"\d+") & ~Filters.command, min_bedrooms)
             ],
-            LOCATION: [MessageHandler(Filters.location, location),],
-            BIO: [MessageHandler(Filters.text & ~Filters.command, bio)],
         },
         fallbacks=[CommandHandler("cancel", cancel)],
     )
@@ -196,11 +225,8 @@ def main():
     dp.add_handler(conv_handler)
 
     # on different commands - answer in Telegram
-    dp.add_handler(CommandHandler("run_default", run_default))
+    dp.add_handler(CommandHandler("run", run))
     dp.add_handler(CommandHandler("test", test))
-
-    # on noncommand i.e message - echo the message on Telegram
-    dp.add_handler(MessageHandler(Filters.text, echo))
 
     # log all errors
     dp.add_error_handler(error)
