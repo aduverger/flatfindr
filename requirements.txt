@@ -1,3 +1,4 @@
 selenium
 python-telegram-bot
-pandas
+chromedriver_binary
+# pandas

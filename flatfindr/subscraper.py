@@ -21,7 +21,7 @@ class Subscraper(Scraper):
         headless=False,
         db_path=os.path.join(
             os.path.dirname(os.path.dirname(os.path.realpath(__file__))),
-            "raw_data/db.json",
+            os.path.join("raw_data", "db.json"),
         ),
     ):
         super().__init__(website, headless=headless, db_path=db_path)
