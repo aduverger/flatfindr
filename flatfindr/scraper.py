@@ -39,7 +39,7 @@ class Scraper:
         option.add_argument("--disable-infobars")
         option.add_argument("start-maximized")
         option.add_argument("--disable-extensions")
-        if headless:
+        if headless or docker:
             option.add_argument("--headless")
         if docker:
             option.add_argument("--disable-gpu")
