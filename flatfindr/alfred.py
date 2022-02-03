@@ -71,7 +71,7 @@ def location(update: Update, context: CallbackContext) -> int:
     location = geolocator.reverse(f"{user_location.latitude},{user_location.longitude}")
     update.message.reply_text(
         f"Wooo I love {location.raw.get('address', {}).get('city', 'suburb')}! "
-        "What is the radius around this position?"
+        "What is the radius (in km) around this position?"
     )
 
     return RADIUS
