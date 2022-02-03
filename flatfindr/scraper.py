@@ -33,7 +33,7 @@ class Scraper:
         self.items_links = []
         self.load_db()
 
-    def load_driver(self, headless=False):
+    def load_driver(self, headless=False, docker=False):
         # Handle the 'Allow notifications box':
         option = Options()
         option.add_argument("--disable-infobars")
@@ -41,17 +41,30 @@ class Scraper:
         option.add_argument("--disable-extensions")
         if headless:
             option.add_argument("--headless")
+        if docker:
+            option.add_argument("--disable-gpu")
+            option.add_argument("window-size=1024,768")
+            option.add_argument("--no-sandbox")
         # Pass the argument 1 to allow and 2 to block
         option.add_experimental_option(
             "prefs", {"profile.default_content_setting_values.notifications": 2}
         )
-        self.driver = webdriver.Chrome(
-            options=option,
-            executable_path=os.path.join(
-                os.path.dirname(os.path.dirname(os.path.realpath(__file__))),
-                "chromedriver",
-            ),
-        )
+        if docker:
+            self.driver = webdriver.Chrome(
+                options=option,
+                executable_path=os.path.join(
+                    os.path.dirname(os.path.dirname(os.path.realpath(__file__))),
+                    "chromedriver-linux64",
+                ),
+            )
+        else:
+            self.driver = webdriver.Chrome(
+                options=option,
+                executable_path=os.path.join(
+                    os.path.dirname(os.path.dirname(os.path.realpath(__file__))),
+                    "chromedriver",
+                ),
+            )
 
     def quit_driver(self):
         self.driver.quit()
