@@ -50,7 +50,7 @@ class Facebook(Scraper):
         radius=2,
         scroll=10,
     ):
-        rentals = "/marketplace/category/propertyrentals?"
+        rentals = "/marketplace/montreal/propertyrentals?"
         price = f"minPrice={min_price}&maxPrice={max_price}"
         bedrooms = f"&minBedrooms={min_bedrooms}"
         pos = f"&exact=false&latitude={lat}&longitude={lng}&radius={radius}"
@@ -217,6 +217,7 @@ def main(
     lng=-73.5724,
     radius=2,
     scroll=15,
+    max_items=30,
 ):
     fb = Facebook(headless=headless)
     # cookies_path = os.path.join(
@@ -237,7 +238,7 @@ def main(
         radius=radius,
         scroll=scroll,
     )
-    items_details = fb.get_items_details(to_html=to_html)
+    items_details = fb.get_items_details(max_items=max_items, to_html=to_html)
     fb.save_db()
     fb.quit_driver()
     return items_details

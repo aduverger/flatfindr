@@ -149,11 +149,11 @@ class Scraper:
         self.driver.get(item_url)
         return item_details
 
-    def get_items_details(self, to_html=False):
+    def get_items_details(self, max_items=30, to_html=False):
         items_details = []
         if len(self.items_links):
             cnt = 0
-            for item_url in self.items_links[:MAX_ITEMS]:
+            for item_url in self.items_links[:max_items]:
                 item_details = self.get_item_details(item_url)
                 self.db["data"].append(
                     [item_details.get(feature, "") for feature in self.db["columns"]]
