@@ -225,6 +225,7 @@ def main():
     dp.add_handler(conv_handler)
 
     # on different commands - answer in Telegram
+    dp.add_handler(CommandHandler("help", help))
     dp.add_handler(CommandHandler("run", run))
     dp.add_handler(CommandHandler("test", test))
 
