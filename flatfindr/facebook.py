@@ -50,7 +50,7 @@ class Facebook(Scraper):
         radius=2,
         scroll=10,
     ):
-        rentals = "/marketplace/montreal/propertyrentals?"
+        rentals = "/marketplace/category/propertyrentals?"
         price = f"minPrice={min_price}&maxPrice={max_price}"
         bedrooms = f"&minBedrooms={min_bedrooms}"
         pos = f"&exact=false&latitude={lat}&longitude={lng}&radius={radius}"
