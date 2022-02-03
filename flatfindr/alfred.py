@@ -21,8 +21,16 @@ from time import sleep
 
 from flatfindr import facebook
 from flatfindr.logins import LOGINS
-from telegram.ext import CommandHandler, Filters, MessageHandler, Updater
-from telegram import ParseMode
+from telegram import ParseMode, ReplyKeyboardMarkup, ReplyKeyboardRemove, Update
+from telegram.ext import (
+    Updater,
+    CommandHandler,
+    MessageHandler,
+    Filters,
+    ConversationHandler,
+    CallbackContext,
+)
+
 
 # Enable logging
 logging.basicConfig(
@@ -31,15 +39,96 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 
+LOCATION, GENDER, PHOTO, BIO = range(4)
 
-# Define a few command handlers. These usually take the two arguments update and
-# context. Error handlers also receive the raised TelegramError object in error.
-def start(update, context):
-    """Send a message when the command /start is issued."""
-    update.message.reply_text("Hi!")
+INFOS = {}
 
 
-def run(update, context):
+def start(update: Update, context: CallbackContext) -> int:
+    """Starts the conversation and asks the user about their gender."""
+    update.message.reply_text(
+        "Hi! My name is Alfred. I will help you find your next apartment."
+        "Send /cancel to stop talking to me.\n\n"
+        "What is the position around which you are looking for an apartment?"
+        "Use the `share position` function from Telegram"
+    )
+
+    return LOCATION
+
+
+def location(update: Update, context: CallbackContext) -> int:
+    """Stores the location and asks for some info about the user."""
+    user = update.message.from_user
+    user_location = update.message.location
+    logger.info(
+        f"Location of {user.first_name}: {user_location.latitude} / {user_location.longitude}"
+    )
+    update.message.reply_text(
+        f"Maybe I can visit you sometime ! At last, tell me something about yourself."
+    )
+
+    return BIO
+
+
+def gender(update: Update, context: CallbackContext) -> int:
+    """Stores the selected gender and asks for a photo."""
+    user = update.message.from_user
+    logger.info("Gender of %s: %s", user.first_name, update.message.text)
+    INFOS["gender"] = update.message.text
+    update.message.reply_text(
+        "I see! Please send me a photo of yourself, "
+        "so I know what you look like, or send /skip if you don't want to.",
+        reply_markup=ReplyKeyboardRemove(),
+    )
+
+    return PHOTO
+
+
+def photo(update: Update, context: CallbackContext) -> int:
+    """Stores the photo and asks for a location."""
+    user = update.message.from_user
+    photo_file = update.message.photo[-1].get_file()
+    photo_file.download("user_photo.jpg")
+    logger.info("Photo of %s: %s", user.first_name, "user_photo.jpg")
+    update.message.reply_text(
+        "Gorgeous! Now, send me your location please, or send /skip if you don't want to."
+    )
+
+    return LOCATION
+
+
+def skip_photo(update: Update, context: CallbackContext) -> int:
+    """Skips the photo and asks for a location."""
+    user = update.message.from_user
+    logger.info("User %s did not send a photo.", user.first_name)
+    update.message.reply_text(
+        "I bet you look great! Now, send me your location please, or send /skip."
+    )
+
+    return LOCATION
+
+
+def bio(update: Update, context: CallbackContext) -> int:
+    """Stores the info about the user and ends the conversation."""
+    user = update.message.from_user
+    logger.info("Bio of %s: %s", user.first_name, update.message.text)
+    update.message.reply_text("Thank you! I hope we can talk again some day.")
+
+    return ConversationHandler.END
+
+
+def cancel(update: Update, context: CallbackContext) -> int:
+    """Cancels and ends the conversation."""
+    user = update.message.from_user
+    logger.info("User %s canceled the conversation.", user.first_name)
+    update.message.reply_text(
+        "Bye! I hope we can talk again some day.", reply_markup=ReplyKeyboardRemove()
+    )
+
+    return ConversationHandler.END
+
+
+def run_default(update, context):
     """Run the flatfindr script"""
     while True:
         ads_to_display = facebook.main(headless=True, to_html=True)
@@ -70,11 +159,8 @@ def test(update, context):
 
 def echo(update, context):
     """Echo the user message."""
-    message = update.message.text
-    if message.lower().strip() == "jeffrey":
+    if update.message.text.lower().strip() == "jeffrey":
         update.message.reply_text("Remets nous des glaçons")
-    else:
-        update.message.reply_text(message)
 
 
 def error(update, context):
@@ -92,9 +178,25 @@ def main():
     # Get the dispatcher to register handlers
     dp = updater.dispatcher
 
+    # Add conversation handler with the states GENDER, PHOTO, LOCATION and BIO
+    conv_handler = ConversationHandler(
+        entry_points=[CommandHandler("start", start)],
+        states={
+            LOCATION: [MessageHandler(Filters.location, location)],
+            PHOTO: [
+                MessageHandler(Filters.photo, photo),
+                CommandHandler("skip", skip_photo),
+            ],
+            LOCATION: [MessageHandler(Filters.location, location),],
+            BIO: [MessageHandler(Filters.text & ~Filters.command, bio)],
+        },
+        fallbacks=[CommandHandler("cancel", cancel)],
+    )
+
+    dp.add_handler(conv_handler)
+
     # on different commands - answer in Telegram
-    dp.add_handler(CommandHandler("start", start))
-    dp.add_handler(CommandHandler("run", run))
+    dp.add_handler(CommandHandler("run_default", run_default))
     dp.add_handler(CommandHandler("test", test))
 
     # on noncommand i.e message - echo the message on Telegram
