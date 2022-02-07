@@ -13,6 +13,7 @@ bot.
 import logging
 import random
 import re
+import os
 
 from geopy.geocoders import Nominatim
 from flatfindr.facebook import Facebook
@@ -25,6 +26,7 @@ from telegram.ext import (
     Filters,
     ConversationHandler,
     CallbackContext,
+    PicklePersistence,
 )
 
 
@@ -36,8 +38,6 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 LOCATION, RADIUS, MIN_PRICE, MAX_PRICE, MIN_BEDROOMS = range(5)
-
-INFOS = {}
 
 
 def start(update: Update, context: CallbackContext) -> int:
@@ -59,8 +59,8 @@ def location(update: Update, context: CallbackContext) -> int:
     logger.info(
         f"Location of {user.first_name}: {user_location.latitude} / {user_location.longitude}"
     )
-    INFOS["lat"] = user_location.latitude
-    INFOS["lng"] = user_location.longitude
+    context.user_data["lat"] = user_location.latitude
+    context.user_data["lng"] = user_location.longitude
     geolocator = Nominatim(user_agent="geoapiExercises")
     location = geolocator.reverse(f"{user_location.latitude},{user_location.longitude}")
     update.message.reply_text(
@@ -76,7 +76,7 @@ def radius(update: Update, context: CallbackContext) -> int:
     user = update.message.from_user
     radius = re.findall(r"\d+", update.message.text)[0]
     logger.info(f"Radius of {user.first_name}: {radius}")
-    INFOS["radius"] = int(radius)
+    context.user_data["radius"] = int(radius)
     update.message.reply_text("I see! What is your minimum monthly rent (in $CAD)?")
 
     return MIN_PRICE
@@ -87,7 +87,7 @@ def min_price(update: Update, context: CallbackContext) -> int:
     user = update.message.from_user
     min_price = re.findall(r"\d+", update.message.text)[0]
     logger.info(f"min_price of {user.first_name}: {min_price}")
-    INFOS["min_price"] = int(min_price)
+    context.user_data["min_price"] = int(min_price)
     update.message.reply_text(
         "Wonderful! Now, what is your maximum monthly rent (in $CAD)?"
     )
@@ -100,7 +100,7 @@ def max_price(update: Update, context: CallbackContext) -> int:
     user = update.message.from_user
     max_price = re.findall(r"\d+", update.message.text)[0]
     logger.info(f"max_price of {user.first_name}: {max_price}")
-    INFOS["max_price"] = int(max_price)
+    context.user_data["max_price"] = int(max_price)
     update.message.reply_text(
         "Gorgeous! Now, tell me the minimum number of bedrooms you need."
     )
@@ -114,10 +114,10 @@ def min_bedrooms(update: Update, context: CallbackContext) -> int:
     user = update.message.from_user
     min_bedrooms = re.findall(r"\d+", update.message.text)[0]
     logger.info(f"min_bedrooms of {user.first_name}: {min_bedrooms}")
-    INFOS["min_bedrooms"] = int(min_bedrooms)
+    context.user_data["min_bedrooms"] = int(min_bedrooms)
     update.message.reply_text(
         "Thank you! "
-        + display_infos()
+        + display_infos(context)
         + "\n\nNext time, you can directly run the same search by using /run instead of /start.\n"
         "The active search can be canceled at any time using /stop. Type /help for a list of all commands."
     )
@@ -144,12 +144,14 @@ def cancel(update: Update, context: CallbackContext) -> int:
 
 def run(update, context):
     chat_id = update.message.chat_id
-    context.bot.send_message(chat_id=update.message.chat_id, text=display_infos())
+    context.bot.send_message(
+        chat_id=update.message.chat_id, text=display_infos(context)
+    )
     context.job_queue.run_repeating(
         run_once,
         interval=random.uniform(25, 35) * 60,
         first=1,
-        context=chat_id,
+        context=(context, chat_id),
         name=str(chat_id),
     )
 
@@ -177,19 +179,19 @@ def stop(update: Update, context: CallbackContext) -> None:
 
 
 def run_once(context):
+    chat_id = context.job.context[1]
+    job_context = context.job.context[0]
     ads_to_display = Facebook(headless=True).run(
         to_html=True,
-        min_price=INFOS.get("min_price", 1200),
-        max_price=INFOS.get("max_price", 1750),
-        min_bedrooms=INFOS.get("min_bedrooms", 2),
-        lat=INFOS.get("lat", 45.5254),
-        lng=INFOS.get("lng", -73.5724),
-        radius=INFOS.get("radius", 2),
+        min_price=job_context.user_data.get("min_price", 1200),
+        max_price=job_context.user_data.get("max_price", 1750),
+        min_bedrooms=job_context.user_data.get("min_bedrooms", 2),
+        lat=job_context.user_data.get("lat", 45.5254),
+        lng=job_context.user_data.get("lng", -73.5724),
+        radius=job_context.user_data.get("radius", 2),
     )
     for ad in ads_to_display:
-        context.bot.send_message(
-            chat_id=context.job.context, text=ad, parse_mode=ParseMode.HTML
-        )
+        context.bot.send_message(chat_id=chat_id, text=ad, parse_mode=ParseMode.HTML)
 
 
 def test(update, context):
@@ -212,14 +214,14 @@ def test(update, context):
     )
 
 
-def display_infos():
+def display_infos(context):
     return (
         "🚀 Launching now the apartment search with these parameters:\n"
-        f"- Min price: {INFOS.get('min_price', 1200)} $CAD\n"
-        f"- Max price: {INFOS.get('max_price', 1750)} $CAD\n"
-        f"- Min bedrooms: {INFOS.get('min_bedrooms', 2)}\n"
-        f"- Lat, Long: {round(INFOS.get('lat', 45.5254), 2)}, {round(INFOS.get('lng', -73.5724), 2)}\n"
-        f"- Radius: {INFOS.get('radius', 2)} km"
+        f"- Min price: {context.user_data.get('min_price', 1200)} $CAD\n"
+        f"- Max price: {context.user_data.get('max_price', 1750)} $CAD\n"
+        f"- Min bedrooms: {context.user_data.get('min_bedrooms', 2)}\n"
+        f"- Lat, Long: {round(context.user_data.get('lat', 45.5254), 2)}, {round(context.user_data.get('lng', -73.5724), 2)}\n"
+        f"- Radius: {context.user_data.get('radius', 2)} km"
     )
 
 
@@ -246,7 +248,13 @@ def main():
     # Create the Updater and pass it your bot's token.
     # Make sure to set use_context=True to use the new context based callbacks
     # Post version 12 this will no longer be necessary
-    updater = Updater(LOGINS["telegram"], use_context=True)
+    persistence = PicklePersistence(
+        filename=os.path.join(
+            os.path.dirname(os.path.dirname(os.path.realpath(__file__))),
+            os.path.join("raw_data", "alfred"),
+        )
+    )
+    updater = Updater(LOGINS["telegram"], use_context=True, persistence=persistence)
 
     # Get the dispatcher to register handlers
     dp = updater.dispatcher
