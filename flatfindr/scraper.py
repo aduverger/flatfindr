@@ -163,7 +163,7 @@ class Scraper:
         self.driver.get(item_url)
         return item_details
 
-    def get_items_details(self, max_items=30, to_html=False):
+    def update_db(self, max_items=30, to_html=False):
         items_details = []
         cnt = 0
         for item_url in self.items_links[:max_items]:
@@ -181,7 +181,7 @@ class Scraper:
             if not cnt % 10:
                 self.save_db()
         print(
-            f"{date.today().strftime('%Y-%m-%d')} {datetime.now().strftime('%H:%M:%S')} - {cnt} new ads to look for"
+            f"{date.today().strftime('%Y-%m-%d')} {datetime.now().strftime('%H:%M:%S')} - {cnt} new ads"
         )
         self.save_db()
         self.items_links = []
@@ -213,7 +213,7 @@ class Scraper:
         with open(self.db_path, "w") as db_file:
             json.dump(self.db, db_file)
 
-    def update_db(
+    def run(
         self,
         to_html=False,
         min_price=1_200,
@@ -243,7 +243,6 @@ class Scraper:
             radius=radius,
             scroll=scroll,
         )
-        items_details = self.get_items_details(max_items=max_items, to_html=to_html)
-        self.save_db()
+        items_details = self.update_db(max_items=max_items, to_html=to_html)
         self.quit_driver()
         return items_details
