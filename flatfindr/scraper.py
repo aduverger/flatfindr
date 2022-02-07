@@ -1,7 +1,7 @@
 import json
 import os
 import pickle
-from datetime import date, timedelta
+from datetime import date, timedelta, datetime
 
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
@@ -182,7 +182,9 @@ class Scraper:
                 if not cnt % 10:
                     self.save_db()
         else:
-            print("No new ads to look for")
+            print(
+                f"{datetime.now().strftime('%H:%M:%S')} {datetime.now().strftime('%H:%M:%S')} - No new ads to look for"
+            )
         self.save_db()
         self.items_links = []
         return items_details
