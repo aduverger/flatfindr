@@ -214,7 +214,7 @@ def test(update, context):
 
 def display_infos():
     return (
-        "\u1F485 Launching now the apartment search with these parameters:\n"
+        "🚀 Launching now the apartment search with these parameters:\n"
         f"- Min price: {INFOS.get('min_price', 1200)} $CAD\n"
         f"- Max price: {INFOS.get('max_price', 1750)} $CAD\n"
         f"- Min bedrooms: {INFOS.get('min_bedrooms', 2)}\n"
@@ -225,7 +225,6 @@ def display_infos():
 
 def help(update, context):
     update.message.reply_text(
-        "🚀 Launching now the apartment search with these parameters:\n"
         "/start - start a custom flat search \n"
         "/run - run the flat search \n"
         "/stop - stop the current flat search \n"
