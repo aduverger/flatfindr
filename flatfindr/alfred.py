@@ -116,8 +116,8 @@ def min_bedrooms(update: Update, context: CallbackContext) -> int:
     logger.info(f"min_bedrooms of {user.first_name}: {min_bedrooms}")
     context.user_data["min_bedrooms"] = int(min_bedrooms)
     update.message.reply_text(
-        "Thank you! "
-        + display_infos(context)
+        "Thank you! 🚀 Launching now the apartment search with these parameters:\n"
+        + get_params(context)
         + "\n\nNext time, you can directly run the same search by using /run instead of /start.\n"
         "The active search can be canceled at any time using /stop. Type /help for a list of all commands."
     )
@@ -145,7 +145,11 @@ def cancel(update: Update, context: CallbackContext) -> int:
 def run(update, context):
     chat_id = update.message.chat_id
     context.bot.send_message(
-        chat_id=update.message.chat_id, text=display_infos(context)
+        chat_id=update.message.chat_id,
+        text=(
+            "🚀 Launching the apartment search with these parameters:\n"
+            + get_params(context)
+        ),
     )
     context.job_queue.run_repeating(
         run_once,
@@ -214,9 +218,12 @@ def test(update, context):
     )
 
 
-def display_infos(context):
+def params(update, context):
+    update.message.reply_text(get_params(context))
+
+
+def get_params(context):
     return (
-        "🚀 Launching now the apartment search with these parameters:\n"
         f"- Min price: {context.user_data.get('min_price', 1200)} $CAD\n"
         f"- Max price: {context.user_data.get('max_price', 1750)} $CAD\n"
         f"- Min bedrooms: {context.user_data.get('min_bedrooms', 2)}\n"
@@ -227,10 +234,11 @@ def display_infos(context):
 
 def help(update, context):
     update.message.reply_text(
-        "/start - start a custom flat search \n"
-        "/run - run the flat search \n"
-        "/stop - stop the current flat search \n"
-        "/test - test a display of a flat ad"
+        "/start - set your search parameters\n"
+        "/run - run the flat search\n"
+        "/stop - stop the current flat search\n"
+        "/params - display the current search parameters\n"
+        "/test - test the display of a flat ad"
     )
 
 
@@ -278,6 +286,7 @@ def main():
     dp.add_handler(CommandHandler("run", run))
     dp.add_handler(CommandHandler("stop", stop))
     dp.add_handler(CommandHandler("test", test))
+    dp.add_handler(CommandHandler("params", params))
     dp.add_handler(MessageHandler(Filters.text | Filters.command, unknown))
     # log all errors
     dp.add_error_handler(error)
