@@ -16,14 +16,12 @@ bot.
 
 import logging
 import random
-import os
 import re
-from time import sleep
 
 from geopy.geocoders import Nominatim
 from flatfindr import facebook
 from flatfindr.logins import LOGINS
-from telegram import ParseMode, ReplyKeyboardMarkup, ReplyKeyboardRemove, Update
+from telegram import ParseMode, ReplyKeyboardRemove, Update
 from telegram.ext import (
     Updater,
     CommandHandler,
@@ -70,7 +68,7 @@ def location(update: Update, context: CallbackContext) -> int:
     geolocator = Nominatim(user_agent="geoapiExercises")
     location = geolocator.reverse(f"{user_location.latitude},{user_location.longitude}")
     update.message.reply_text(
-        f"Wooo I love {location.raw.get('address', {}).get('city', 'suburb')}! "
+        f"Wooo I love {location.raw.get('address', {}).get('city', location.raw.get('address', {}).get('suburb', 'nowhere'))}! "
         "What is the radius (in km) around this position?"
     )
 
@@ -116,32 +114,26 @@ def max_price(update: Update, context: CallbackContext) -> int:
 
 def min_bedrooms(update: Update, context: CallbackContext) -> int:
     """Stores the max price and ends the conversation / run the script."""
+    chat_id = update.message.chat_id
     user = update.message.from_user
     min_bedrooms = re.findall(r"\d+", update.message.text)[0]
     logger.info(f"min_bedrooms of {user.first_name}: {min_bedrooms}")
     INFOS["min_bedrooms"] = int(min_bedrooms)
-    update.message.reply_text("Thank you! Now let me find one flat that match..")
-
-    """Run the flatfindr script for 1 item"""
-    ads_to_display = facebook.main(
-        headless=True,
-        to_html=True,
-        min_price=INFOS.get("min_price", 0),
-        max_price=INFOS.get("max_price", 5000),
-        min_bedrooms=INFOS.get("min_bedrooms", 1),
-        lat=INFOS.get("lat", 45.5254),
-        lng=INFOS.get("lng", -73.5724),
-        radius=INFOS.get("radius", 2),
-        scroll=0,
-        max_items=1,
+    update.message.reply_text(
+        "Thank you! Launching now the apartment search with these parameters:\n"
+        f"- Min price: {INFOS.get('min_price', 1200)}\n"
+        f"- Max price: {INFOS.get('max_price', 1750)}\n"
+        f"- Min bedrooms: {INFOS.get('min_bedrooms', 2)}\n"
+        f"- Lat, Long: ({INFOS.get('lat', 45.5254)},{INFOS.get('lng', -73.5724)})\n"
+        f"- Radius: {INFOS.get('radius', 2)} km"
     )
-    if len(ads_to_display):
-        update.message.reply_text(ads_to_display[0], parse_mode=ParseMode.HTML)
-    else:
-        update.message.reply_text(
-            "Unfortunately, there is nothing on the marketplace for now!"
-        )
-
+    context.job_queue.run_repeating(
+        run_once,
+        interval=random.uniform(25, 35) * 60,
+        first=1,
+        context=chat_id,
+        name=str(chat_id),
+    )
     return ConversationHandler.END
 
 
@@ -157,12 +149,64 @@ def cancel(update: Update, context: CallbackContext) -> int:
 
 
 def run(update, context):
-    """Run the flatfindr script"""
-    while True:
-        ads_to_display = facebook.main(headless=True, to_html=True)
-        for ad in ads_to_display:
-            update.message.reply_text(ad, parse_mode=ParseMode.HTML)
-        sleep(random.uniform(25, 35) * 60)
+    chat_id = update.message.chat_id
+    context.bot.send_message(
+        chat_id=update.message.chat_id,
+        text=(
+            "Launching the apartment search with these parameters:\n"
+            f"- Min price: {INFOS.get('min_price', 1200)}\n"
+            f"- Max price: {INFOS.get('max_price', 1750)}\n"
+            f"- Min bedrooms: {INFOS.get('min_bedrooms', 2)}\n"
+            f"- Lat, Long: ({INFOS.get('lat', 45.5254)},{INFOS.get('lng', -73.5724)})\n"
+            f"- Radius: {INFOS.get('radius', 2)} km"
+        ),
+    )
+    context.job_queue.run_repeating(
+        run_once,
+        interval=random.uniform(25, 35) * 60,
+        first=1,
+        context=chat_id,
+        name=str(chat_id),
+    )
+
+
+def remove_job_if_exists(name: str, context: CallbackContext) -> bool:
+    """Remove job with given name. Returns whether job was removed."""
+    current_jobs = context.job_queue.get_jobs_by_name(name)
+    if not current_jobs:
+        return False
+    for job in current_jobs:
+        job.schedule_removal()
+    return True
+
+
+def stop(update: Update, context: CallbackContext) -> None:
+    """Remove the job if the user changed their mind."""
+    chat_id = update.message.chat_id
+    job_removed = remove_job_if_exists(str(chat_id), context)
+    text = (
+        "Flat search successfully cancelled!"
+        if job_removed
+        else "You have no active flat search."
+    )
+    update.message.reply_text(text)
+
+
+def run_once(context):
+    ads_to_display = facebook.main(
+        headless=True,
+        to_html=True,
+        min_price=INFOS.get("min_price", 1200),
+        max_price=INFOS.get("max_price", 1750),
+        min_bedrooms=INFOS.get("min_bedrooms", 2),
+        lat=INFOS.get("lat", 45.5254),
+        lng=INFOS.get("lng", -73.5724),
+        radius=INFOS.get("radius", 2),
+    )
+    for ad in ads_to_display:
+        context.bot.send_message(
+            chat_id="5141554322", text=ad, parse_mode=ParseMode.HTML
+        )
 
 
 def test(update, context):
@@ -178,7 +222,7 @@ def test(update, context):
         "address": "2212 Rue d'Iberville",
         "furnished": "Non meublé",
         "images": [],
-        "description": "Superbe 4 1/2 mise \u00e0 neuf, moderne et au go\u00fbt du jour dans le magnifique quartier de Centre-Sud-Ville-Marie.",
+        "description": "Superbe 4 1/2 mise à neuf, moderne et au goût du jour dans le magnifique quartier de Centre-Sud-Ville-Marie.",
     }
     update.message.reply_text(
         fb.item_details_to_html(item_details), parse_mode=ParseMode.HTML
@@ -187,7 +231,7 @@ def test(update, context):
 
 def help(update, context):
     update.message.reply_text(
-        "/start - start a custom flat search"
+        "/start - start a custom flat search \n"
         "/run - run the default flat search for Montréal"
     )
 
@@ -206,6 +250,9 @@ def main():
 
     # Get the dispatcher to register handlers
     dp = updater.dispatcher
+
+    # Get the jobqueue
+    j = updater.job_queue
 
     # Add conversation handler with the states GENDER, PHOTO, LOCATION and BIO
     conv_handler = ConversationHandler(
@@ -227,6 +274,7 @@ def main():
     # on different commands - answer in Telegram
     dp.add_handler(CommandHandler("help", help))
     dp.add_handler(CommandHandler("run", run))
+    dp.add_handler(CommandHandler("stop", stop))
     dp.add_handler(CommandHandler("test", test))
 
     # log all errors
