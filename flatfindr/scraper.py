@@ -88,6 +88,21 @@ class Scraper:
         for cookie in cookies:
             self.driver.add_cookie(cookie)
 
+    def log_in(self):
+        self.driver.get(self.main_url)
+
+    def get_items_links(
+        self,
+        min_price=1_200,
+        max_price=1_750,
+        min_bedrooms=2,
+        lat=45.5254,
+        lng=-73.5724,
+        radius=2,
+        scroll=10,
+    ):
+        return self.items_links
+
     def item_details_to_string(self, item_details):
         sentence = ""
         for key, value in item_details.items():
@@ -199,5 +214,37 @@ class Scraper:
         with open(self.db_path, "w") as db_file:
             json.dump(self.db, db_file)
 
-    def upgrade_db(self):
-        pass
+    def update_db(
+        self,
+        to_html=False,
+        min_price=1_200,
+        max_price=1_750,
+        min_bedrooms=2,
+        lat=45.5254,
+        lng=-73.5724,
+        radius=2,
+        scroll=15,
+        max_items=30,
+    ):
+        # cookies_path = os.path.join(
+        #     os.path.dirname(os.path.dirname(os.path.realpath(__file__))),
+        #     "raw_data/cookies.pkl",
+        # )
+        # if not os.path.isfile(cookies_path):
+        #     self.log_in()
+        # else:
+        #     self.load_cookies()
+        self.log_in()
+        self.get_items_links(
+            min_price=min_price,
+            max_price=max_price,
+            min_bedrooms=min_bedrooms,
+            lat=lat,
+            lng=lng,
+            radius=radius,
+            scroll=scroll,
+        )
+        items_details = self.get_items_details(max_items=max_items, to_html=to_html)
+        self.save_db()
+        self.quit_driver()
+        return items_details

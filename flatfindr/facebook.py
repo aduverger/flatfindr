@@ -13,14 +13,13 @@ ONE_WEEK = 8
 class Facebook(Scraper):
     def __init__(
         self,
-        website="facebook",
         headless=False,
         db_path=os.path.join(
             os.path.dirname(os.path.dirname(os.path.realpath(__file__))),
             os.path.join("raw_data", "db.json"),
         ),
     ):
-        super().__init__(website, headless=headless, db_path=db_path)
+        super().__init__(website="facebook", headless=headless, db_path=db_path)
 
     def log_in(self):
         self.driver.get(self.main_url)

@@ -19,7 +19,7 @@ import random
 import re
 
 from geopy.geocoders import Nominatim
-from flatfindr import facebook
+from flatfindr.facebook import Facebook
 from flatfindr.logins import LOGINS
 from telegram import ParseMode, ReplyKeyboardRemove, Update
 from telegram.ext import (
@@ -193,8 +193,7 @@ def stop(update: Update, context: CallbackContext) -> None:
 
 
 def run_once(context):
-    ads_to_display = facebook.main(
-        headless=True,
+    ads_to_display = Facebook(headless=True).update_db(
         to_html=True,
         min_price=INFOS.get("min_price", 1200),
         max_price=INFOS.get("max_price", 1750),
@@ -210,7 +209,7 @@ def run_once(context):
 
 
 def test(update, context):
-    fb = facebook.Facebook(headless=True)
+    fb = Facebook(headless=True)
     fb.quit_driver()
     item_details = {
         "url": "https://www.facebook.com/marketplace/item/296710065762366/",
