@@ -165,8 +165,8 @@ class Scraper:
 
     def get_items_details(self, max_items=30, to_html=False):
         items_details = []
+        cnt = 0
         if len(self.items_links):
-            cnt = 0
             for item_url in self.items_links[:max_items]:
                 item_details = self.get_item_details(item_url)
                 self.db["data"].append(
@@ -181,8 +181,6 @@ class Scraper:
                         items_details.append(self.item_details_to_string(item_details))
                 if not cnt % 10:
                     self.save_db()
-        else:
-            cnt = "No"
         print(
             f"{date.today().strftime('%Y-%m-%d')} {datetime.now().strftime('%H:%M:%S')} - {cnt} new ads to look for"
         )
