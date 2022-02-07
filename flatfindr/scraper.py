@@ -174,11 +174,11 @@ class Scraper:
                 )
                 if item_details.get("state") == "new":
                     # If the ad is interesting, we add its string description for the bot to display
+                    cnt += 1
                     if to_html:
                         items_details.append(self.item_details_to_html(item_details))
                     else:
                         items_details.append(self.item_details_to_string(item_details))
-                cnt += 1
                 if not cnt % 10:
                     self.save_db()
         else:

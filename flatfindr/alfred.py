@@ -116,10 +116,10 @@ def min_bedrooms(update: Update, context: CallbackContext) -> int:
     logger.info(f"min_bedrooms of {user.first_name}: {min_bedrooms}")
     INFOS["min_bedrooms"] = int(min_bedrooms)
     update.message.reply_text(
-        "Thank you!"
+        "Thank you! "
         + display_infos()
-        + "\n\nNext time, you can directly run this search with these parameters by using /run instead of /start."
-        "The active search can be canceled using /stop. Type /help for a list of all commands."
+        + "\n\nNext time, you can directly run the same search by using /run instead of /start.\n"
+        "The active search can be canceled at any time using /stop. Type /help for a list of all commands."
     )
     context.job_queue.run_repeating(
         run_once,
@@ -218,7 +218,7 @@ def display_infos():
         f"- Min price: {INFOS.get('min_price', 1200)} $CAD\n"
         f"- Max price: {INFOS.get('max_price', 1750)} $CAD\n"
         f"- Min bedrooms: {INFOS.get('min_bedrooms', 2)}\n"
-        f"- Lat, Long: {INFOS.get('lat', 45.5254)}, {INFOS.get('lng', -73.5724)}\n"
+        f"- Lat, Long: {round(INFOS.get('lat', 45.5254), 2)}, {round(INFOS.get('lng', -73.5724), 2)}\n"
         f"- Radius: {INFOS.get('radius', 2)} km"
     )
 
