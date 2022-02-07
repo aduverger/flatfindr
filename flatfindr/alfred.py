@@ -232,6 +232,10 @@ def help(update, context):
     )
 
 
+def unknown(update: Update, context: CallbackContext):
+    update.message.reply_text("Sorry, I didn't understand that answer.")
+
+
 def error(update, context):
     """Log Errors caused by Updates."""
     logger.warning('Update "%s" caused error "%s"', update, context.error)
@@ -247,9 +251,6 @@ def main():
     # Get the dispatcher to register handlers
     dp = updater.dispatcher
 
-    # Get the jobqueue
-    j = updater.job_queue
-
     # Add conversation handler with the states GENDER, PHOTO, LOCATION and BIO
     conv_handler = ConversationHandler(
         entry_points=[CommandHandler("start", start)],
@@ -258,13 +259,10 @@ def main():
             RADIUS: [MessageHandler(Filters.regex(r"\d+"), radius)],
             MIN_PRICE: [MessageHandler(Filters.regex(r"\d+"), min_price)],
             MAX_PRICE: [MessageHandler(Filters.regex(r"\d+"), max_price)],
-            MIN_BEDROOMS: [
-                MessageHandler(Filters.regex(r"\d+") & ~Filters.command, min_bedrooms)
-            ],
+            MIN_BEDROOMS: [MessageHandler(Filters.regex(r"\d+"), min_bedrooms)],
         },
         fallbacks=[CommandHandler("cancel", cancel)],
     )
-
     dp.add_handler(conv_handler)
 
     # on different commands - answer in Telegram
@@ -272,7 +270,7 @@ def main():
     dp.add_handler(CommandHandler("run", run))
     dp.add_handler(CommandHandler("stop", stop))
     dp.add_handler(CommandHandler("test", test))
-
+    dp.add_handler(MessageHandler(Filters.text | Filters.command, unknown))
     # log all errors
     dp.add_error_handler(error)
 
