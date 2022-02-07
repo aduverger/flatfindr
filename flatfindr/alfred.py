@@ -231,7 +231,9 @@ def test(update, context):
 def help(update, context):
     update.message.reply_text(
         "/start - start a custom flat search \n"
-        "/run - run the default flat search for Montréal"
+        "/run - run the flat search \n"
+        "/stop - stop the current flat search \n"
+        "/test - test a display of a flat ad"
     )
 
 
