@@ -183,7 +183,7 @@ class Scraper:
                     self.save_db()
         else:
             print(
-                f"{datetime.now().strftime('%H:%M:%S')} {datetime.now().strftime('%H:%M:%S')} - No new ads to look for"
+                f"{date.today().strftime('%Y-%m-%d')} {datetime.now().strftime('%H:%M:%S')} - No new ads to look for"
             )
         self.save_db()
         self.items_links = []
