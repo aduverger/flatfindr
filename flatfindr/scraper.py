@@ -182,9 +182,10 @@ class Scraper:
                 if not cnt % 10:
                     self.save_db()
         else:
-            print(
-                f"{date.today().strftime('%Y-%m-%d')} {datetime.now().strftime('%H:%M:%S')} - No new ads to look for"
-            )
+            cnt = "No"
+        print(
+            f"{date.today().strftime('%Y-%m-%d')} {datetime.now().strftime('%H:%M:%S')} - {cnt} new ads to look for"
+        )
         self.save_db()
         self.items_links = []
         return items_details
