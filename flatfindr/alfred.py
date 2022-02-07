@@ -188,7 +188,7 @@ def run_once(context):
     )
     for ad in ads_to_display:
         context.bot.send_message(
-            chat_id="5141554322", text=ad, parse_mode=ParseMode.HTML
+            chat_id=context.job.context, text=ad, parse_mode=ParseMode.HTML
         )
 
 
