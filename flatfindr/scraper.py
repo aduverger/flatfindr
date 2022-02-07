@@ -1,4 +1,3 @@
-# facebook marketplace
 import json
 import os
 import pickle

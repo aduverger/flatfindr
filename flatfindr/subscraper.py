@@ -1,4 +1,3 @@
-# facebook marketplace
 import os
 import random
 from datetime import date, timedelta
