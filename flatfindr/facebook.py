@@ -14,14 +14,13 @@ class Facebook(Scraper):
     def __init__(
         self,
         headless=False,
-        docker=False,
         db_path=os.path.join(
             os.path.dirname(os.path.dirname(os.path.realpath(__file__))),
             os.path.join("raw_data", "db.json"),
         ),
     ):
         super().__init__(
-            website="facebook", headless=headless, docker=docker, db_path=db_path
+            website="facebook", headless=headless,db_path=db_path
         )
 
     def log_in(self):

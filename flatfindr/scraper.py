@@ -1,6 +1,7 @@
 import json
 import os
 import pickle
+import platform
 from datetime import date, timedelta, datetime
 
 from selenium import webdriver
@@ -18,7 +19,6 @@ class Scraper:
         self,
         website,
         headless=False,
-        docker=False,
         db_path=os.path.join(
             os.path.dirname(os.path.dirname(os.path.realpath(__file__))),
             os.path.join("raw_data", "db.json"),
@@ -28,37 +28,35 @@ class Scraper:
         self.email = LOGINS.get(website, {}).get("id", "id")
         self.password = LOGINS.get(website, {}).get("pass", "pass")
         self.db_path = db_path
-        self.load_driver(headless=headless, docker=docker)
+        self.load_driver(headless=headless)
         self.main_url = URL.get(website)
         self.items_links = []
         self.load_db()
 
-    def load_driver(self, headless=False, docker=False):
+    def load_driver(self, headless=False):
         # Handle the 'Allow notifications box':
         options = Options()
         options.add_argument("--disable-infobars")
         options.add_argument("start-maximized")
         options.add_argument("--disable-extensions")
-        if headless or docker:
+        if headless:
             options.add_argument("--headless")
-        if docker:
+        system_name = platform.system() # Linux, Mac, Windows
+        system_arch = platform.machine() # ARM, AMD64, ...
+        if system_name == 'Linux' and system_arch == 'amd64': # if docker
             options.add_argument("--disable-gpu")
             options.add_argument("window-size=1024,768")
             options.add_argument("--no-sandbox")
-        # Pass the argument 1 to allow and 2 to block
+        driver_path = os.path.join(
+                os.path.dirname(os.path.dirname(os.path.realpath(__file__))),
+                "drivers", f"chromedriver-{system_name}-{system_arch}"
+                )
         options.add_experimental_option(
             "prefs", {"profile.default_content_setting_values.notifications": 2}
         )
-        if docker:
-            driver_name = "chromedriver-linux64"
-        else:
-            driver_name = "chromedriver"
         self.driver = webdriver.Chrome(
             options=options,
-            executable_path=os.path.join(
-                os.path.dirname(os.path.dirname(os.path.realpath(__file__))),
-                driver_name,
-            ),
+            executable_path=driver_path
         )
 
     def quit_driver(self):
@@ -67,7 +65,7 @@ class Scraper:
     def save_cookies(self):
         cookies_path = os.path.join(
             os.path.dirname(os.path.dirname(os.path.realpath(__file__))),
-            f"raw_data/cookies-{self.website}.pkl",
+            "raw_data", f"cookies-{self.website}.pkl",
         )
         with open(cookies_path, "wb") as cookies_file:
             pickle.dump(self.driver.get_cookies(), cookies_file)
@@ -76,7 +74,7 @@ class Scraper:
         self.driver.get(self.main_url)
         cookies_path = os.path.join(
             os.path.dirname(os.path.dirname(os.path.realpath(__file__))),
-            f"raw_data/cookies-{self.website}.pkl",
+            "raw_data", f"cookies-{self.website}.pkl",
         )
         with open(cookies_path, "rb") as cookies_file:
             cookies = pickle.load(cookies_file)
