@@ -18,6 +18,7 @@ class Scraper:
         self,
         website,
         headless=False,
+        docker=False,
         db_path=os.path.join(
             os.path.dirname(os.path.dirname(os.path.realpath(__file__))),
             os.path.join("raw_data", "db.json"),
@@ -27,43 +28,38 @@ class Scraper:
         self.email = LOGINS.get(website, {}).get("id", "id")
         self.password = LOGINS.get(website, {}).get("pass", "pass")
         self.db_path = db_path
-        self.load_driver(headless=headless)
+        self.load_driver(headless=headless, docker=docker)
         self.main_url = URL.get(website)
         self.items_links = []
         self.load_db()
 
     def load_driver(self, headless=False, docker=False):
         # Handle the 'Allow notifications box':
-        option = Options()
-        option.add_argument("--disable-infobars")
-        option.add_argument("start-maximized")
-        option.add_argument("--disable-extensions")
+        options = Options()
+        options.add_argument("--disable-infobars")
+        options.add_argument("start-maximized")
+        options.add_argument("--disable-extensions")
         if headless or docker:
-            option.add_argument("--headless")
+            options.add_argument("--headless")
         if docker:
-            option.add_argument("--disable-gpu")
-            option.add_argument("window-size=1024,768")
-            option.add_argument("--no-sandbox")
+            options.add_argument("--disable-gpu")
+            options.add_argument("window-size=1024,768")
+            options.add_argument("--no-sandbox")
         # Pass the argument 1 to allow and 2 to block
-        option.add_experimental_option(
+        options.add_experimental_option(
             "prefs", {"profile.default_content_setting_values.notifications": 2}
         )
         if docker:
-            self.driver = webdriver.Chrome(
-                options=option,
-                executable_path=os.path.join(
-                    os.path.dirname(os.path.dirname(os.path.realpath(__file__))),
-                    "chromedriver-linux64",
-                ),
-            )
+            driver_name = "chromedriver-linux64"
         else:
-            self.driver = webdriver.Chrome(
-                options=option,
-                executable_path=os.path.join(
-                    os.path.dirname(os.path.dirname(os.path.realpath(__file__))),
-                    "chromedriver",
-                ),
-            )
+            driver_name = "chromedriver"
+        self.driver = webdriver.Chrome(
+            options=options,
+            executable_path=os.path.join(
+                os.path.dirname(os.path.dirname(os.path.realpath(__file__))),
+                driver_name,
+            ),
+        )
 
     def quit_driver(self):
         self.driver.quit()
