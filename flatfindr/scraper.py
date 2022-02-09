@@ -41,23 +41,21 @@ class Scraper:
         options.add_argument("--disable-extensions")
         if headless:
             options.add_argument("--headless")
-        system_name = platform.system() # Linux, Mac, Windows
-        system_arch = platform.machine() # ARM, AMD64, ...
-        if system_name == 'Linux' and system_arch == 'amd64': # if docker
+        system_name = platform.system()  # Linux, Mac, Windows
+        system_arch = platform.machine()  # ARM, AMD64, ...
+        if system_name == "Linux" and system_arch == "amd64":  # if docker
             options.add_argument("--disable-gpu")
             options.add_argument("window-size=1024,768")
             options.add_argument("--no-sandbox")
         driver_path = os.path.join(
-                os.path.dirname(os.path.dirname(os.path.realpath(__file__))),
-                "drivers", f"chromedriver-{system_name}-{system_arch}"
-                )
+            os.path.dirname(os.path.dirname(os.path.realpath(__file__))),
+            "drivers",
+            f"chromedriver-{system_name}-{system_arch}",
+        )
         options.add_experimental_option(
             "prefs", {"profile.default_content_setting_values.notifications": 2}
         )
-        self.driver = webdriver.Chrome(
-            options=options,
-            executable_path=driver_path
-        )
+        self.driver = webdriver.Chrome(options=options, executable_path=driver_path)
 
     def quit_driver(self):
         self.driver.quit()
@@ -65,7 +63,8 @@ class Scraper:
     def save_cookies(self):
         cookies_path = os.path.join(
             os.path.dirname(os.path.dirname(os.path.realpath(__file__))),
-            "raw_data", f"cookies-{self.website}.pkl",
+            "raw_data",
+            f"cookies-{self.website}.pkl",
         )
         with open(cookies_path, "wb") as cookies_file:
             pickle.dump(self.driver.get_cookies(), cookies_file)
@@ -74,7 +73,8 @@ class Scraper:
         self.driver.get(self.main_url)
         cookies_path = os.path.join(
             os.path.dirname(os.path.dirname(os.path.realpath(__file__))),
-            "raw_data", f"cookies-{self.website}.pkl",
+            "raw_data",
+            f"cookies-{self.website}.pkl",
         )
         with open(cookies_path, "rb") as cookies_file:
             cookies = pickle.load(cookies_file)
