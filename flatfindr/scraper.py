@@ -6,6 +6,9 @@ from datetime import date, timedelta, datetime
 
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service
+
+from webdriver_manager.chrome import ChromeDriverManager
 
 from flatfindr.logins import LOGINS
 from flatfindr.utils import KEYWORDS, URL
@@ -39,25 +42,30 @@ class Scraper:
         options.add_argument("--disable-infobars")
         options.add_argument("start-maximized")
         options.add_argument("--disable-extensions")
-        if headless:
-            options.add_argument("--headless")
-        system_name = platform.system() # Linux, Mac, Windows
-        system_arch = platform.machine() # ARM, AMD64, ...
-        if system_name == 'Linux' and system_arch == 'amd64': # if docker
-            options.add_argument("--disable-gpu")
-            options.add_argument("window-size=1024,768")
-            options.add_argument("--no-sandbox")
-        driver_path = os.path.join(
-                os.path.dirname(os.path.dirname(os.path.realpath(__file__))),
-                "drivers", f"chromedriver-{system_name}-{system_arch}"
-                )
         options.add_experimental_option(
             "prefs", {"profile.default_content_setting_values.notifications": 2}
         )
-        self.driver = webdriver.Chrome(
-            options=options,
-            executable_path=driver_path
-        )
+        if headless:
+            options.add_argument("--headless")
+        system_name = platform.system() # Linux, Mac, Windows
+        system_arch = platform.machine() # arm, amd64, ...
+        if system_name == 'Linux' and system_arch == 'amd64': # if docker
+            options.add_argument("window-size=1024,768")
+            options.add_argument("--no-sandbox")
+
+        if system_name == 'Linux' and system_arch == 'armv7l': # if raspberry pi
+            options.BinaryLocation = "/usr/bin/chromium-browser" # browser is Chromium not Chrome
+            driver_path = "/usr/bin/chromedriver" # we use custom chromedriver for raspberry
+            self.driver = webdriver.Chrome(
+                    options=options,
+                    executable_path=driver_path
+                    )
+        else: 
+            service = Service(ChromeDriverManager().install()) # we use chromedrivermanager for ease of use
+            self.driver = webdriver.Chrome(
+                    options=options,
+                    service=service
+                    )
 
     def quit_driver(self):
         self.driver.quit()

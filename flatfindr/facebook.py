@@ -25,6 +25,7 @@ class Facebook(Scraper):
 
     def log_in(self):
         self.driver.get(self.main_url)
+        sleep(random.uniform(2, 2.5))
         try:
             email_input = self.driver.find_element_by_id("email")
             email_input.send_keys(self.email)
@@ -56,6 +57,7 @@ class Facebook(Scraper):
         bedrooms = f"&minBedrooms={min_bedrooms}"
         pos = f"&exact=false&latitude={lat}&longitude={lng}&radius={radius}"
         self.driver.get(self.main_url + rentals + price + bedrooms + pos)
+        sleep(random.uniform(5, 7)) # wait a bit so that the RasPi can load the page
 
         seen_links = [data[0] for data in self.db["data"]]
 
@@ -64,10 +66,11 @@ class Facebook(Scraper):
                 self.driver.execute_script(
                     "window.scrollTo(0, document.body.scrollHeight);"
                 )
-                sleep(random.uniform(0.8, 1.2))
+                sleep(random.uniform(1.5, 2))
             except:
                 pass
 
+        sleep(random.uniform(2, 3)) # wait a bit so that the RasPi can load the page
         all_href = self.driver.find_elements_by_xpath("//a[@href]")
         for item in all_href:
             try:
@@ -152,19 +155,22 @@ class Facebook(Scraper):
                     f"//div[@aria-label='{KEYWORDS['next_img']}']"
                 )
                 next_button.click()
-                sleep(random.uniform(0.6, 1))
+                sleep(random.uniform(1, 1.2))
             except:  # only 1 picture for this ad so there is no next button
                 break
         return images
 
     def get_item_details(self, item_url, remove_swap=True, remove_first_floor=True):
         item_details = super().get_item_details(item_url)
+        sleep(random.uniform(5, 5.5)) # wait a bit so that the RasPi can load the page
+        all_href = self.driver.find_elements_by_xpath("//a[@href]")
+
         # Click on 'see more' button to get the full description
         buttons = self.driver.find_elements_by_xpath("//div[@role='button']")
         _ = [
             button.click() for button in buttons if button.text == KEYWORDS["see_more"]
         ]
-        sleep(random.uniform(0.2, 0.5))
+        sleep(random.uniform(0.5, 0.9))
 
         details = self.driver.find_elements_by_xpath("//span[@dir]")
         for i in range(len(details)):
@@ -204,5 +210,5 @@ class Facebook(Scraper):
             item_details["images"] = []
         else:
             item_details["state"] = "new"
-            item_details["images"] = self.get_item_images()
+            item_details["images"] = [] # self.get_item_images()
         return item_details
