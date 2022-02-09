@@ -19,9 +19,7 @@ class Facebook(Scraper):
             os.path.join("raw_data", "db.json"),
         ),
     ):
-        super().__init__(
-            website="facebook", headless=headless,db_path=db_path
-        )
+        super().__init__(website="facebook", headless=headless, db_path=db_path)
 
     def log_in(self):
         self.driver.get(self.main_url)
@@ -57,7 +55,7 @@ class Facebook(Scraper):
         bedrooms = f"&minBedrooms={min_bedrooms}"
         pos = f"&exact=false&latitude={lat}&longitude={lng}&radius={radius}"
         self.driver.get(self.main_url + rentals + price + bedrooms + pos)
-        sleep(random.uniform(5, 7)) # wait a bit so that the RasPi can load the page
+        sleep(random.uniform(5, 7))  # wait a bit so that the RasPi can load the page
 
         seen_links = [data[0] for data in self.db["data"]]
 
@@ -70,7 +68,7 @@ class Facebook(Scraper):
             except:
                 pass
 
-        sleep(random.uniform(2, 3)) # wait a bit so that the RasPi can load the page
+        sleep(random.uniform(2, 3))  # wait a bit so that the RasPi can load the page
         all_href = self.driver.find_elements_by_xpath("//a[@href]")
         for item in all_href:
             try:
@@ -162,7 +160,7 @@ class Facebook(Scraper):
 
     def get_item_details(self, item_url, remove_swap=True, remove_first_floor=True):
         item_details = super().get_item_details(item_url)
-        sleep(random.uniform(5, 5.5)) # wait a bit so that the RasPi can load the page
+        sleep(random.uniform(5, 5.5))  # wait a bit so that the RasPi can load the page
         all_href = self.driver.find_elements_by_xpath("//a[@href]")
 
         # Click on 'see more' button to get the full description
@@ -210,5 +208,5 @@ class Facebook(Scraper):
             item_details["images"] = []
         else:
             item_details["state"] = "new"
-            item_details["images"] = [] # self.get_item_images()
+            item_details["images"] = []  # self.get_item_images()
         return item_details

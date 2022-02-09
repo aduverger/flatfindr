@@ -6,9 +6,6 @@ from datetime import date, timedelta, datetime
 
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.chrome.service import Service
-
-from webdriver_manager.chrome import ChromeDriverManager
 
 from flatfindr.logins import LOGINS
 from flatfindr.utils import KEYWORDS, URL
@@ -53,19 +50,19 @@ class Scraper:
             options.add_argument("window-size=1024,768")
             options.add_argument("--no-sandbox")
 
-        if system_name == "Linux" and system_arch == "armv7l":  # if raspberry pi
+        if system_name == "Linux" and system_arch == "armv7l":  # if raspi
             options.BinaryLocation = (
-                "/usr/bin/chromium-browser"  # browser is Chromium not Chrome
+                "/usr/bin/chromium-browser"  # browser is Chromium instead of Chrome
             )
             driver_path = (
                 "/usr/bin/chromedriver"  # we use custom chromedriver for raspberry
             )
-            self.driver = webdriver.Chrome(options=options, executable_path=driver_path)
-        else:
-            service = Service(
-                ChromeDriverManager().install()
-            )  # we use chromedrivermanager for ease of use
-            self.driver = webdriver.Chrome(options=options, service=service)
+        elif system_name == "Darwin" and system_arch == "arm64":  # if mac M1
+            driver_path = os.path.join(
+                os.path.dirname(os.path.dirname(os.path.realpath(__file__))),
+                os.path.join("drivers", "chromedriver"),
+            )
+        self.driver = webdriver.Chrome(options=options, executable_path=driver_path)
 
     def quit_driver(self):
         self.driver.quit()
