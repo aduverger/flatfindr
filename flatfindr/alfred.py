@@ -142,7 +142,7 @@ def cancel(update: Update, context: CallbackContext) -> int:
     return ConversationHandler.END
 
 
-def run(update, context):
+def run(update: Update, context: CallbackContext) -> None:
     chat_id = update.message.chat_id
     context.bot.send_message(
         chat_id=update.message.chat_id,
@@ -182,7 +182,7 @@ def stop(update: Update, context: CallbackContext) -> None:
     update.message.reply_text(text)
 
 
-def run_once(context):
+def run_once(context: CallbackContext) -> None:
     chat_id = context.job.context[1]
     job_context = context.job.context[0]
     ads_to_display = Facebook().run(
@@ -198,7 +198,7 @@ def run_once(context):
         context.bot.send_message(chat_id=chat_id, text=ad, parse_mode=ParseMode.HTML)
 
 
-def test(update, context):
+def test(update: Update, context: CallbackContext) -> None:
     fb = Facebook()
     fb.quit_driver()
     item_details = {
@@ -218,11 +218,11 @@ def test(update, context):
     )
 
 
-def params(update, context):
+def params(update: Update, context: CallbackContext) -> None:
     update.message.reply_text(get_params(context))
 
 
-def get_params(context):
+def get_params(context: CallbackContext) -> str:
     return (
         f"- Min price: {context.user_data.get('min_price', 1200)} $CAD\n"
         f"- Max price: {context.user_data.get('max_price', 1750)} $CAD\n"
@@ -232,7 +232,7 @@ def get_params(context):
     )
 
 
-def help(update, context):
+def help(update: Update, context: CallbackContext) -> None:
     update.message.reply_text(
         "/start - set your search parameters\n"
         "/run - run the flat search\n"
@@ -242,16 +242,16 @@ def help(update, context):
     )
 
 
-def unknown(update: Update, context: CallbackContext):
+def unknown(update: Update, context: CallbackContext) -> None:
     update.message.reply_text("Sorry, I didn't understand that answer.")
 
 
-def error(update, context):
+def error(update: Update, context: CallbackContext) -> None:
     """Log Errors caused by Updates."""
     logger.warning('Update "%s" caused error "%s"', update, context.error)
 
 
-def main():
+def main() -> None:
     """Start the bot."""
     # Create the Updater and pass it your bot's token.
     # Make sure to set use_context=True to use the new context based callbacks
