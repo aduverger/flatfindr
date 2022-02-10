@@ -125,7 +125,7 @@ def min_bedrooms(update: Update, context: CallbackContext) -> int:
         run_once,
         interval=random.uniform(25, 35) * 60,
         first=1,
-        context=chat_id,
+        context=(context, chat_id),
         name=str(chat_id),
     )
     return ConversationHandler.END
