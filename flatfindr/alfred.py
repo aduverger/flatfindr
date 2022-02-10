@@ -185,7 +185,7 @@ def stop(update: Update, context: CallbackContext) -> None:
 def run_once(context):
     chat_id = context.job.context[1]
     job_context = context.job.context[0]
-    ads_to_display = Facebook(headless=True).run(
+    ads_to_display = Facebook().run(
         to_html=True,
         min_price=job_context.user_data.get("min_price", 1200),
         max_price=job_context.user_data.get("max_price", 1750),
@@ -199,7 +199,7 @@ def run_once(context):
 
 
 def test(update, context):
-    fb = Facebook(headless=True)
+    fb = Facebook()
     fb.quit_driver()
     item_details = {
         "url": "https://www.facebook.com/marketplace/item/296710065762366/",

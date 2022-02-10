@@ -13,7 +13,7 @@ ONE_WEEK = 8
 class Facebook(Scraper):
     def __init__(
         self,
-        headless=False,
+        headless=True,
         db_path=os.path.join(
             os.path.dirname(os.path.dirname(os.path.realpath(__file__))),
             os.path.join("raw_data", "db.json"),
