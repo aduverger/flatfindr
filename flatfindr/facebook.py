@@ -7,8 +7,10 @@ from time import sleep
 from flatfindr.scraper import Scraper, ONE_WEEK
 from flatfindr.utils import KEYWORDS
 
-
 from selenium.webdriver.common.by import By
+
+
+MAX_SURFACE = 200  # The max surface after which it is considered that the surface is actually in square feet and not square metre.
 
 """
 Class for scraping the Facebook Marketplace, which inherits from the Scraper Class.
@@ -148,27 +150,46 @@ class Facebook(Scraper):
 
     def get_item_address(self, detail):
         """Get the item address from an input string.
+        driver = webdriver.Chrome(
+              service=service,
+              options=options
+            )
+                Args:
+                    detail (str): A string containing the full address, e.g. '5510 Avenue Stirling, Montreal, QC'.
 
-        Args:
-            detail (str): A string containing the full address, e.g. '5510 Avenue Stirling, Montreal, QC'.
-
-        Returns:
-            str: The item address, without the city, province, etc., e.g. '5510 Avenue Stirling'.
+                Returns:
+                    str: The item address, without the city, province, ... e.g. '5510 Avenue Stirling'.
         """
         return detail.replace(KEYWORDS["montreal"], "").replace(", ", "")
 
     def get_item_surface(self, detail):
+        """Get the item surface, in m2.
+
+        Args:
+            detail (str): A string containing the item surface, e.g. '800 square feet'.
+
+        Returns:
+            int: The item surface, in m2.
+        """
         try:
             surface = int(detail[:4].replace(" ", ""))
         except:
             print("Error while casting surface")
             return 0
-        if KEYWORDS["surface(ft2)"] in detail or surface > 200:
-            # if square feet (considering that a surface > 200 is necessarily in ft2)
+        if KEYWORDS["surface(ft2)"] in detail or surface > MAX_SURFACE:
+            # if square feet (considering that a surface > MAX_SURFACE is necessarily in ft2)
             surface = round(surface / 10.764)
         return surface
 
     def get_item_bedrooms(self, detail):
+        """Get the item number of bedrooms.
+
+        Args:
+            detail (str): A string containing the item number of bedrooms, e.g. '2 bedrooms · 1 bathroom'.
+
+        Returns:
+            int: The item number of bedrooms, e.g. 2.
+        """
         try:
             return int(detail[0])
         except:
@@ -176,12 +197,26 @@ class Facebook(Scraper):
             return 0
 
     def get_item_description(self, detail):
+        """Get the item description, minus the 'see less' text.
+
+        Args:
+            detail (str): A string containing the item description.
+
+        Returns:
+            str: The same string as input, minus the 'see less' that is at the end of it.
+        """
         return detail.replace(KEYWORDS["see_less"], "")
 
     def get_item_images(self):
+        """Get the item images/photos/pictures, as url.
+
+        Returns:
+            list: A list of all the item images url.
+        """
         images = []
         cnt = 0
         while cnt < 30:
+            # to avoid infinite loop, we stop after 30 clicks
             try:
                 img = self.driver.find_element(
                     By.XPATH, "//img[@referrerpolicy='origin-when-cross-origin']"
@@ -207,13 +242,21 @@ class Facebook(Scraper):
         return images
 
     def get_item_details(self, item_url, remove_swap=True, remove_first_floor=True):
+        """Go to the item url with the webdriver and scrap as much details as possible about the item.
+
+        Args:
+            item_url (str): The url (or link) of the item.
+            remove_swap (bool): Set to False if you want to see ads about swaping apartments. Defaults to True.
+            remove_first_floor (bool): Set to False if you want to see ads with flats on ground floor. Defaults to True.
+
+        Returns:
+            dict: A dictionnary with all the item details.
+        """
         item_details = super().get_item_details(item_url)
         if self.slow:
             sleep(random.uniform(5, 5.5))
-        all_href = self.driver.find_elements(By.XPATH, "//a[@href]")
-
-        # Click on 'see more' button to get the full description
         buttons = self.driver.find_elements(By.XPATH, "//div[@role='button']")
+        # Click on 'see more' button to get the full description
         _ = [
             button.click() for button in buttons if button.text == KEYWORDS["see_more"]
         ]

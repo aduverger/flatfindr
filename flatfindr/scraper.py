@@ -134,12 +134,14 @@ class Scraper:
         """
         return self.items_links
 
-    def get_item_details(self, item_url):
+    def get_item_details(self, item_url, **kwargs):
         """Go to the item url with the webdriver and scrap as much details as possible about the item.
         The full version of this method needs to be implemented inside each subclass, as the way to get these details is different from one website to another.
 
         Args:
             item_url (str): The url (or link) of the item.
+            **kwargs: Additional search criteria, e.g. `remove_first_floor`.
+                      See the implementation of the method inside each SubScraper class for additional details.
 
         Returns:
             dict: A dictionnary with all the item details.
@@ -242,13 +244,15 @@ class Scraper:
             )
         )
 
-    def update_db(self, max_items=30, to_html=False):
+    def update_db(self, max_items=30, to_html=False, **kwargs):
         """Go to every items links from `self.items_links` and scrap every details from theses pages.
         Then, save all these details inside the database and return string or html representations of these.
 
         Args:
             max_items (int): The maximum number of items you want to scrap for each run. It is good use to not set it too high, to avoid getting banned from the website. Defaults to 30.
             to_html (bool): If set to True, return a list of html representations of the items details. Defaults to False.
+            **kwargs: Additional search criteria for the get_item_details() method, e.g. `remove_first_floor`.
+                      See the implementation of the method inside each SubScraper class for additional details.
 
         Returns:
             list: A list of all the string or html representations of the items details. It is usefull for printing all the details from the new flats you found.
@@ -256,7 +260,7 @@ class Scraper:
         items_details = []
         cnt = 0
         for item_url in self.items_links[:max_items]:
-            item_details = self.get_item_details(item_url)
+            item_details = self.get_item_details(item_url, **kwargs)
             self.db["data"].append(
                 [item_details.get(feature, "") for feature in self.db["columns"]]
             )
