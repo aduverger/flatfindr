@@ -1,13 +1,9 @@
 """
-Bot to reply to Telegram messages.
-
-First, a few handler functions are defined. Then, those functions are passed to
-the Dispatcher and registered at their respective places.
-Then, the bot is started and runs until we press Ctrl-C on the command line.
+Persistent Bot to handle a conversation with the user in order to store the search criteria (minimum price, number of bedrooms, etc).
+Once theses search criteria are set, the bot can run a flat search every 30 minutes and send messages when new ads are found.
 
 Usage:
-Press Ctrl-C on the command line or send a signal to the process to stop the
-bot.
+Press Ctrl-C on the command line or send a signal to the process to stop the bot.
 """
 
 import logging
@@ -41,12 +37,13 @@ LOCATION, RADIUS, MIN_PRICE, MAX_PRICE, MIN_BEDROOMS = range(5)
 
 
 def start(update: Update, context: CallbackContext) -> int:
-    """Starts the conversation and asks the user about its prefered position."""
+    """Starts the conversation and asks the user about its prefered location."""
     update.message.reply_text(
         "Hi! My name is Alfred. I will help you find your next apartment. "
         "Send /cancel to stop talking to me.\n\n"
-        "What is the position around which you are looking for an apartment? "
-        "Use the `share position` function from Telegram"
+        "What is the location around which you are looking for an apartment? "
+        "Use the `share location` function from Telegram",
+        # reply_markup=
     )
 
     return LOCATION

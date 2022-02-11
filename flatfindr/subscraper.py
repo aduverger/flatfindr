@@ -44,7 +44,7 @@ class Subscraper(Scraper):
 
     def log_in(self):
         """Log in the website."""
-        self.driver.get(self.main_url)
+        super().log_in()
         if self.slow:
             sleep(random.uniform(2, 2.5))
         try:
