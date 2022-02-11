@@ -117,7 +117,9 @@ def min_bedrooms(update: Update, context: CallbackContext) -> int:
     update.message.reply_text(
         "Thank you! 🚀 Launching now the apartment search with these parameters:\n"
         + get_params(context)
-        + "\n\nNext time, you can directly run the same search by using /run instead of /start.\n"
+    )
+    update.message.reply_text(
+        "Next time, you can directly run the same search by using /run instead of /start.\n"
         "The active search can be canceled at any time using /stop. Type /help for a list of all commands."
     )
     context.job_queue.run_repeating(

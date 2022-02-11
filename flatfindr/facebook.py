@@ -220,12 +220,6 @@ class Facebook(Scraper):
         Returns:
             str: The same string as input, minus the 'see less' that is at the end of it, e.g. 'This flat is located [...] Contact by mail only.'
         """
-        buttons = self.driver.find_elements(By.XPATH, "//div[@role='button']")
-        # Click on 'see more' button to get the full description
-        _ = [
-            button.click() for button in buttons if button.text == KEYWORDS["see_more"]
-        ]
-        sleep(random.uniform(0.5, 0.9))
         return detail.replace(KEYWORDS["see_less"], "")
 
     def get_item_images(self):
@@ -274,8 +268,15 @@ class Facebook(Scraper):
             dict: A dictionnary with all the item details.
         """
         item_details = super().get_item_details(item_url)
+        sleep(random.uniform(1, 1.5))
         if self.slow:
-            sleep(random.uniform(5, 5.5))
+            sleep(4)
+        buttons = self.driver.find_elements(By.XPATH, "//div[@role='button']")
+        # Click on 'see more' button to get the full description
+        _ = [
+            button.click() for button in buttons if button.text == KEYWORDS["see_more"]
+        ]
+        sleep(random.uniform(0.4, 0.6))
 
         details = self.driver.find_elements(By.XPATH, "//span[@dir]")
         for i in range(len(details)):
