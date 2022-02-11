@@ -1,16 +1,31 @@
 # facebook marketplace
-import os
 import random
 from datetime import date, timedelta
 from time import sleep
 
 from flatfindr.scraper import Scraper, ONE_WEEK
-from flatfindr.utils import KEYWORDS
 
 from selenium.webdriver.common.by import By
 
 
 MAX_SURFACE = 200  # The max surface after which it is considered that the surface is actually in square feet and not square metre.
+WEBSITE_NAME = "facebook"
+KEYWORDS = {
+    "published": "Mis en vente il y a ",
+    "price": "$ / mois",
+    "address": "Montréal, QC",
+    "surface(m2)": "mètres carrés",
+    "surface(ft2)": "pieds carrés",
+    "bedrooms": "chambres · ",
+    "furnished": ("Meublé", "Non meublé"),
+    "description": "Description",
+    "day": "jours",
+    "week": "semaine",
+    "montreal": "Montréal, QC",
+    "see_more": "Voir plus",
+    "see_less": "Voir moins",
+    "next_img": "Voir l’image suivante",
+}
 
 """
 Class for scraping the Facebook Marketplace, which inherits from the Scraper Class.
@@ -26,10 +41,14 @@ class Facebook(Scraper):
         Args:
             headless (bool): Set to False if you want the browser to run with a GUI (meaning a window will pop-up). Defaults to True.
             db_path (str): The path to the JSON database. Defaults to ./raw_data/db.json from the root of the flatfindr library.
+            slow (bool): Set to True if you want the wole process to run slowly by adding a lot of waiting times inside the methods.
+                         This is particularly usefull if you're running the scripts on a slow machine, e.g. a Rasbery Pi, so that the webpages don't switch to fast for it to get the details.
+                         Defaults to False.
         """
-        super().__init__(website="facebook", **kwargs)
+        super().__init__(website=WEBSITE_NAME, **kwargs)
 
     def log_in(self):
+        """Log in the website."""
         self.driver.get(self.main_url)
         if self.slow:
             sleep(random.uniform(2, 2.5))
@@ -68,7 +87,7 @@ class Facebook(Scraper):
             lat (float): The latitude of your prefered position for your next apartment. Defaults to 45.5254.
             lng (float): The longitude of your prefered position for your next apartment. Defaults to -73.5724.
             radius (int): The radius around your prefered position, in km. Defaults to 2.
-            scroll (int): The number of scrollings (or new pages) you want to do (or go to) before stopping looking for new ads. Defaults to 10.
+            scroll (int): The number of scrollings you want to do before stopping looking for new ads. Defaults to 10.
 
         Returns:
             list: A list of all the flats url (or items links) that match the search criteria.
@@ -150,15 +169,11 @@ class Facebook(Scraper):
 
     def get_item_address(self, detail):
         """Get the item address from an input string.
-        driver = webdriver.Chrome(
-              service=service,
-              options=options
-            )
-                Args:
-                    detail (str): A string containing the full address, e.g. '5510 Avenue Stirling, Montreal, QC'.
+        Args:
+            detail (str): A string containing the full address, e.g. '5510 Avenue Stirling, Montreal, QC'.
 
-                Returns:
-                    str: The item address, without the city, province, ... e.g. '5510 Avenue Stirling'.
+        Returns:
+            str: The item address, without the city, province, ... e.g. '5510 Avenue Stirling'.
         """
         return detail.replace(KEYWORDS["montreal"], "").replace(", ", "")
 
@@ -200,11 +215,17 @@ class Facebook(Scraper):
         """Get the item description, minus the 'see less' text.
 
         Args:
-            detail (str): A string containing the item description.
+            detail (str): A string containing the item description, e.g. 'This flat is located [...] Contact by mail only. See less'
 
         Returns:
-            str: The same string as input, minus the 'see less' that is at the end of it.
+            str: The same string as input, minus the 'see less' that is at the end of it, e.g. 'This flat is located [...] Contact by mail only.'
         """
+        buttons = self.driver.find_elements(By.XPATH, "//div[@role='button']")
+        # Click on 'see more' button to get the full description
+        _ = [
+            button.click() for button in buttons if button.text == KEYWORDS["see_more"]
+        ]
+        sleep(random.uniform(0.5, 0.9))
         return detail.replace(KEYWORDS["see_less"], "")
 
     def get_item_images(self):
@@ -255,12 +276,6 @@ class Facebook(Scraper):
         item_details = super().get_item_details(item_url)
         if self.slow:
             sleep(random.uniform(5, 5.5))
-        buttons = self.driver.find_elements(By.XPATH, "//div[@role='button']")
-        # Click on 'see more' button to get the full description
-        _ = [
-            button.click() for button in buttons if button.text == KEYWORDS["see_more"]
-        ]
-        sleep(random.uniform(0.5, 0.9))
 
         details = self.driver.find_elements(By.XPATH, "//span[@dir]")
         for i in range(len(details)):
