@@ -47,6 +47,9 @@ jobs:
     #     python -m pip install --upgrade pip
     #     pip install -r requirements.txt
     # - name: Install package and test
+    #   env:
+    #     FB_LOGIN: ${{ secrets.FB_LOGIN }}
+    #     FB_PWD: ${{ secrets.FB_PWD }}
     #   run: |
     #     make install test clean
 
