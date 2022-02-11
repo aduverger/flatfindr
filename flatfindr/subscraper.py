@@ -5,7 +5,6 @@ from datetime import date, timedelta
 from time import sleep
 
 from flatfindr.scraper import Scraper, ONE_WEEK
-from flatfindr.utils import KEYWORDS
 
 from selenium.webdriver.common.by import By
 
