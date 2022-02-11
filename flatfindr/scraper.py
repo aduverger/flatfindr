@@ -11,6 +11,10 @@ from flatfindr.logins import LOGINS
 from flatfindr.utils import KEYWORDS, URL
 
 ONE_WEEK = 8
+DEFAULT_DB_PATH = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.realpath(__file__))),
+    os.path.join("raw_data", "db.json"),
+)
 
 """
 Main class for the flatfindr library.
@@ -25,14 +29,11 @@ class Scraper:
         self,
         website="",
         headless=True,
-        db_path=os.path.join(
-            os.path.dirname(os.path.dirname(os.path.realpath(__file__))),
-            os.path.join("raw_data", "db.json"),
-        ),
+        db_path=DEFAULT_DB_PATH,
     ):
         """
         Args:
-            website (str): The name of the website you want to scrap. Should match with the keys of the `LOGINS` dictionnary from `logins.py`. e.g.: 'facebook' 
+            website (str): The name of the website you want to scrap. Should match with the keys of the `LOGINS` dictionnary from `logins.py`. e.g.: 'facebook'
             headless (bool): Set to False if you want the browser to run with a GUI (meaning a window will pop-up). Defaults to True.
             db_path (str): The path to the JSON database. Defaults to ./raw_data/db.json from the root of the flatfindr library.
         """
@@ -46,7 +47,7 @@ class Scraper:
         self.load_db()
 
     def load_driver(self, headless=True):
-        """Load the webdriver. 
+        """Load the webdriver.
 
         Args:
             headless (bool): Set to False if you want the browser to run with a GUI (meaning a window will pop-up). Defaults to True.
@@ -70,24 +71,24 @@ class Scraper:
         if system_name == "Linux" and system_arch == "armv7l":  # if Raspberry Pi
             options.BinaryLocation = "/usr/bin/chromium-browser"  # browser is Chromium
             driver_path = "/usr/bin/chromedriver"  # custom chromedriver for Raspberry
-        elif system_name == "Darwin" and system_arch == "arm64":  # if Mac M1
+        elif system_name == "Darwin" and system_arch in ("arm64", "x86_64"):
             driver_path = os.path.join(
                 os.path.dirname(os.path.dirname(os.path.realpath(__file__))),
                 os.path.join("drivers", "chromedriver"),
             )
         else:
             print("System architecture not currently supported by flatfindr.\n")
+            pass
 
         self.driver = webdriver.Chrome(options=options, executable_path=driver_path)
 
     def quit_driver(self):
-        """Quit the webdriver.
-        """
+        """Quit the webdriver."""
         self.driver.quit()
 
     def save_cookies(self):
         """Save cookies from current session.
-            The cookies are saved in ./raw_data/cookies-<WEBSITE_NAME>.pkl from the root of the flatfindr library.
+        The cookies are saved in ./raw_data/cookies-<WEBSITE_NAME>.pkl from the root of the flatfindr library.
         """
         cookies_path = os.path.join(
             os.path.dirname(os.path.dirname(os.path.realpath(__file__))),
@@ -98,8 +99,7 @@ class Scraper:
             pickle.dump(self.driver.get_cookies(), cookies_file)
 
     def load_cookies(self):
-        """Load the cookies previously saved so that the webdriver don't need to log in every time it opens a webdriver for `self.website`.
-        """
+        """Load the cookies previously saved so that the webdriver don't need to log in every time it opens a webdriver for `self.website`."""
         self.driver.get(self.main_url)
         cookies_path = os.path.join(
             os.path.dirname(os.path.dirname(os.path.realpath(__file__))),
@@ -127,8 +127,8 @@ class Scraper:
         radius=2,
         scroll=10,
     ):
-        """ Get links (i.e. url) of ads matching the search criteria. 
-        The full version of this method needs to be implemented inside each subclass, as the way to look for matching ads is different from one website to another. 
+        """Get links (i.e. url) of ads matching the search criteria.
+        The full version of this method needs to be implemented inside each subclass, as the way to look for matching ads is different from one website to another.
 
         Args:
             min_price (int): The minimum price of your next apartment. Defaults to 1_200.
@@ -146,7 +146,7 @@ class Scraper:
 
     def get_item_details(self, item_url):
         """Go to the item url with the webdriver and scrap as much details as possible about the item.
-        The full version of this method needs to be implemented inside each subclass, as the way to get these details is different from one website to another. 
+        The full version of this method needs to be implemented inside each subclass, as the way to get these details is different from one website to another.
 
         Args:
             item_url (str): The url (or link) of the item.
@@ -287,8 +287,7 @@ class Scraper:
         return items_details
 
     def load_db(self):
-        """Load the JSON database and assign it to `self.db` as a dictionnary.
-        """
+        """Load the JSON database and assign it to `self.db` as a dictionnary."""
         if os.path.isfile(self.db_path):  # if the db's json exists, load it
             with open(self.db_path, "r") as db_file:
                 self.db = json.load(db_file)
@@ -311,8 +310,7 @@ class Scraper:
             self.save_db()
 
     def save_db(self):
-        """Save the database dictionnary as a JSON file.
-        """
+        """Save the database dictionnary as a JSON file."""
         with open(self.db_path, "w") as db_file:
             json.dump(self.db, db_file)
 

@@ -4,22 +4,25 @@ import random
 from datetime import date, timedelta
 from time import sleep
 
-from flatfindr.scraper import Scraper
+from flatfindr.scraper import Scraper, ONE_WEEK
 from flatfindr.utils import KEYWORDS
 
-ONE_WEEK = 8
+"""
+Class for scraping the Facebook Marketplace, which inherits from the Scraper Class.
+"""
 
 
 class Facebook(Scraper):
     def __init__(
         self,
-        headless=True,
-        db_path=os.path.join(
-            os.path.dirname(os.path.dirname(os.path.realpath(__file__))),
-            os.path.join("raw_data", "db.json"),
-        ),
+        **kwargs,
     ):
-        super().__init__(website="facebook", headless=headless, db_path=db_path)
+        """
+        Args:
+            headless (bool): Set to False if you want the browser to run with a GUI (meaning a window will pop-up). Defaults to True.
+            db_path (str): The path to the JSON database. Defaults to ./raw_data/db.json from the root of the flatfindr library.
+        """
+        super().__init__(website="facebook", **kwargs)
 
     def log_in(self):
         self.driver.get(self.main_url)
