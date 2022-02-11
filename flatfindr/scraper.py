@@ -6,6 +6,7 @@ from datetime import date, timedelta, datetime
 
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service
 
 from flatfindr.logins import LOGINS
 from flatfindr.utils import KEYWORDS, URL
@@ -25,22 +26,21 @@ See the Subscraper Class for an exemple.
 
 
 class Scraper:
-    def __init__(
-        self,
-        website="",
-        headless=True,
-        db_path=DEFAULT_DB_PATH,
-    ):
+    def __init__(self, website="", headless=True, db_path=DEFAULT_DB_PATH, slow=False):
         """
         Args:
             website (str): The name of the website you want to scrap. Should match with the keys of the `LOGINS` dictionnary from `logins.py`. e.g.: 'facebook'
             headless (bool): Set to False if you want the browser to run with a GUI (meaning a window will pop-up). Defaults to True.
             db_path (str): The path to the JSON database. Defaults to ./raw_data/db.json from the root of the flatfindr library.
+            slow (bool): Set to True if you want the wole process to run slowly by adding a lot of sleep().
+                         This is particularly usefull if you're running the scripts on a slow machine, e.g. a Rasbery Pi, so that the webpages don't switch to fast for it to get the details.
+                         Defaults to False.
         """
         self.website = website
         self.email = LOGINS.get(website, {}).get("id", "id")
         self.password = LOGINS.get(website, {}).get("pass", "pass")
         self.db_path = db_path
+        self.slow = slow
         self.load_driver(headless=headless)
         self.main_url = URL.get(website, "")
         self.items_links = []
@@ -81,7 +81,9 @@ class Scraper:
                     os.path.dirname(os.path.dirname(os.path.realpath(__file__))),
                     os.path.join("drivers", "chromedriver"),
                 )
-            self.driver = webdriver.Chrome(options=options, executable_path=driver_path)
+            self.driver = webdriver.Chrome(
+                service=Service(driver_path), options=options
+            )
         except:
             print(
                 "Error: Check that your chromedriver fits with your browser version and your system architecture"

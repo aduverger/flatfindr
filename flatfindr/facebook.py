@@ -7,6 +7,9 @@ from time import sleep
 from flatfindr.scraper import Scraper, ONE_WEEK
 from flatfindr.utils import KEYWORDS
 
+
+from selenium.webdriver.common.by import By
+
 """
 Class for scraping the Facebook Marketplace, which inherits from the Scraper Class.
 """
@@ -26,15 +29,16 @@ class Facebook(Scraper):
 
     def log_in(self):
         self.driver.get(self.main_url)
-        sleep(random.uniform(2, 2.5))
+        if self.slow:
+            sleep(random.uniform(2, 2.5))
         try:
-            email_input = self.driver.find_element_by_id("email")
+            email_input = self.driver.find_element(By.ID, "email")
             email_input.send_keys(self.email)
             sleep(random.uniform(0.2, 0.5))
-            password_input = self.driver.find_element_by_id("pass")
+            password_input = self.driver.find_element(By.ID, "pass")
             password_input.send_keys(self.password)
             sleep(random.uniform(0.2, 0.5))
-            login_button = self.driver.find_element_by_xpath("//*[@type='submit']")
+            login_button = self.driver.find_element(By.XPATH, "//*[@type='submit']")
             login_button.click()
             sleep(random.uniform(2, 3))
             # self.save_cookies()
@@ -72,7 +76,8 @@ class Facebook(Scraper):
         bedrooms = f"&minBedrooms={min_bedrooms}"
         pos = f"&exact=false&latitude={lat}&longitude={lng}&radius={radius}"
         self.driver.get(self.main_url + rentals + price + bedrooms + pos)
-        sleep(random.uniform(5, 7))  # wait a bit so that the RasPi can load the page
+        if self.slow:
+            sleep(random.uniform(5, 7))
 
         seen_links = [data[0] for data in self.db["data"]]
 
@@ -85,8 +90,9 @@ class Facebook(Scraper):
             except:
                 pass
 
-        sleep(random.uniform(2, 3))  # wait a bit so that the RasPi can load the page
-        all_href = self.driver.find_elements_by_xpath("//a[@href]")
+        if self.slow:
+            sleep(random.uniform(2, 3))
+        all_href = self.driver.find_elements(By.XPATH, "//a[@href]")
         for item in all_href:
             try:
                 item_url = item.get_attribute("href")
@@ -177,7 +183,8 @@ class Facebook(Scraper):
 
     def get_item_details(self, item_url, remove_swap=True, remove_first_floor=True):
         item_details = super().get_item_details(item_url)
-        sleep(random.uniform(5, 5.5))  # wait a bit so that the RasPi can load the page
+        if self.slow:
+            sleep(random.uniform(5, 5.5))
         all_href = self.driver.find_elements_by_xpath("//a[@href]")
 
         # Click on 'see more' button to get the full description
