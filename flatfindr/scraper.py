@@ -8,10 +8,10 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 
-from flatfindr.logins import LOGINS
-from flatfindr.utils import KEYWORDS, URL
+from flatfindr.logins import LOGINS, URL
 
 ONE_WEEK = 8
+KEYWORDS = {"gmaps": "+Montr%C3%A9al,+QC"}
 DEFAULT_DB_PATH = os.path.join(
     os.path.dirname(os.path.dirname(os.path.realpath(__file__))),
     os.path.join("raw_data", "db.json"),
