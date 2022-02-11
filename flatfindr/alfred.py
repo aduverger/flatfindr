@@ -14,7 +14,8 @@ import os
 from geopy.geocoders import Nominatim
 from flatfindr.facebook import Facebook
 from flatfindr.logins import LOGINS
-from telegram import ParseMode, ReplyKeyboardRemove, Update
+from telegram import ParseMode, Update
+
 from telegram.ext import (
     Updater,
     CommandHandler,
@@ -40,10 +41,11 @@ def start(update: Update, context: CallbackContext) -> int:
     """Starts the conversation and asks the user about its prefered location."""
     update.message.reply_text(
         "Hi! My name is Alfred. I will help you find your next apartment. "
-        "Send /cancel to stop talking to me.\n\n"
-        "What is the location around which you are looking for an apartment? "
-        "Use the `share location` function from Telegram",
-        # reply_markup=
+        "Send /cancel to stop talking to me."
+    )
+    update.message.reply_text(
+        "What is the location around which you are looking for an apartment?\n"
+        "Click on 📎 then 'Location'",
     )
 
     return LOCATION
@@ -62,7 +64,7 @@ def location(update: Update, context: CallbackContext) -> int:
     location = geolocator.reverse(f"{user_location.latitude},{user_location.longitude}")
     update.message.reply_text(
         f"Wooo I love {location.raw.get('address', {}).get('city', location.raw.get('address', {}).get('suburb', 'nowhere'))}! "
-        "What is the radius (in km) around this position?"
+        "What is the radius (in km) around this position?",
     )
 
     return RADIUS
@@ -132,9 +134,7 @@ def cancel(update: Update, context: CallbackContext) -> int:
     """Cancels and ends the conversation."""
     user = update.message.from_user
     logger.info("User %s canceled the conversation.", user.first_name)
-    update.message.reply_text(
-        "Bye! I hope we can talk again some day.", reply_markup=ReplyKeyboardRemove()
-    )
+    update.message.reply_text("Bye! I hope we can talk again soon.")
 
     return ConversationHandler.END
 
