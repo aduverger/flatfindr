@@ -13,6 +13,7 @@ black:
 test:
 	@coverage run -m pytest tests/*.py
 	@coverage report -m --omit="${VIRTUAL_ENV}/lib/python*"
+	@rm -f raw_data/test_db.json
 
 ftest:
 	@Write me

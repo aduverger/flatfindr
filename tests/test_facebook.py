@@ -14,12 +14,11 @@ TEST_DB_PATH = os.path.join(
     os.path.join("raw_data", "test_db.json"),
 )
 
-fb = Facebook(headless=False, db_path=TEST_DB_PATH)
-
 
 class TestLogIn(unittest.TestCase):
     @unittest.mock.patch("sys.stdout", new_callable=io.StringIO)
     def test_log_in(self, mock_stdout):
+        fb = Facebook(headless=True, db_path=TEST_DB_PATH)
         fb.log_in()
         self.assertEqual(mock_stdout.getvalue(), "")
         fb.quit_driver()
