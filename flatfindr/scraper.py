@@ -171,7 +171,7 @@ class Scraper:
         """
         sentence = ""
         for key, value in item_details.items():
-            if key not in ("images", "state"):
+            if key not in ("images", "state") and value != "":
                 sentence += f"{key}: {value} \n"
         sentence += "\n  " + "=" * 40 + "\n  " + "=" * 40 + "\n"
         return sentence
@@ -188,7 +188,7 @@ class Scraper:
         """
         sentence = ""
         for key, value in item_details.items():
-            if key not in ("images", "state"):
+            if key not in ("images", "state") and value != "":
                 if key == "url":
                     sentence += f"{key}: <a target='_blank' href='{value}'>{value[-15:-1]}</a> \n"
                 elif key == "address":
