@@ -48,7 +48,7 @@ jobs:
     #     pip install -r requirements.txt
     # - name: Install package and test
     #   env:
-    #     FB_LOGIN: ${{ secrets.FB_LOGIN }}
+    #     FB_LOGIN: ${{ secrets.FB_ID }}
     #     FB_PWD: ${{ secrets.FB_PWD }}
     #   run: |
     #     make install test clean
