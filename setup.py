@@ -7,7 +7,7 @@ requirements = [x.strip() for x in content]
 
 setup(
     name="flatfindr",
-    version="0.2",
+    version="0.4",
     description="Python-based tool to retrieve apartments ads from different sources.",
     packages=find_packages(),
     install_requires=requirements,
