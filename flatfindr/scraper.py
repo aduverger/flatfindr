@@ -68,19 +68,24 @@ class Scraper:
             options.add_argument("window-size=1024,768")
             options.add_argument("--no-sandbox")
 
-        if system_name == "Linux" and system_arch == "armv7l":  # if Raspberry Pi
-            options.BinaryLocation = "/usr/bin/chromium-browser"  # browser is Chromium
-            driver_path = "/usr/bin/chromedriver"  # custom chromedriver for Raspberry
-        elif system_name == "Darwin" and system_arch in ("arm64", "x86_64"):
-            driver_path = os.path.join(
-                os.path.dirname(os.path.dirname(os.path.realpath(__file__))),
-                os.path.join("drivers", "chromedriver"),
+        try:
+            if system_name == "Linux" and system_arch == "armv7l":  # if Raspberry Pi
+                options.BinaryLocation = (
+                    "/usr/bin/chromium-browser"  # browser is Chromium
+                )
+                driver_path = (
+                    "/usr/bin/chromedriver"  # custom chromedriver for Raspberry
+                )
+            else:
+                driver_path = os.path.join(
+                    os.path.dirname(os.path.dirname(os.path.realpath(__file__))),
+                    os.path.join("drivers", "chromedriver"),
+                )
+            self.driver = webdriver.Chrome(options=options, executable_path=driver_path)
+        except:
+            print(
+                "Error: Check that your chromedriver fits with your browser version and your system architecture"
             )
-        else:
-            print("System architecture not currently supported by flatfindr.\n")
-            pass
-
-        self.driver = webdriver.Chrome(options=options, executable_path=driver_path)
 
     def quit_driver(self):
         """Quit the webdriver."""
@@ -117,28 +122,13 @@ class Scraper:
         """
         self.driver.get(self.main_url)
 
-    def get_items_links(
-        self,
-        min_price=1_200,
-        max_price=1_750,
-        min_bedrooms=2,
-        lat=45.5254,
-        lng=-73.5724,
-        radius=2,
-        scroll=10,
-    ):
+    def get_items_links(self, **kwargs):
         """Get links (i.e. url) of ads matching the search criteria.
         The full version of this method needs to be implemented inside each subclass, as the way to look for matching ads is different from one website to another.
 
         Args:
-            min_price (int): The minimum price of your next apartment. Defaults to 1_200.
-            max_price (int): The maximum price of your next apartment. Defaults to 1_750.
-            min_bedrooms (int): The minimum number of bedrooms of your next apartment. Defaults to 2.
-            lat (float): The latitude of your prefered position for your next apartment. Defaults to 45.5254.
-            lng (float): The longitude of your prefered position for your next apartment. Defaults to -73.5724.
-            radius (int): The radius around your prefered position, in km. Defaults to 2.
-            scroll (int): The number of scrollings (or new pages) you want to do (or go to) before stopping looking for new ads. Defaults to 10.
-
+            **kwargs: You search criteria, depending on the website you're scrapping (eg. minimum price, number of bedrooms, ...).
+                      This is managed at the Subscraper Class level (e.g. Facebook Class)
         Returns:
             list: A list of all the flats url (or items links) that match the search criteria.
         """
@@ -319,30 +309,13 @@ class Scraper:
                 f"Error while trying to save the database to `{self.db_path}`. Please use a valid path, e.g. `./data/db.json`"
             )
 
-    def run(
-        self,
-        to_html=False,
-        min_price=1_200,
-        max_price=1_750,
-        min_bedrooms=2,
-        lat=45.5254,
-        lng=-73.5724,
-        radius=2,
-        scroll=15,
-        max_items=30,
-    ):
+    def run(self, to_html=False, max_items=30, **kwargs):
         """Main method to run a full search : log in, get links, scrap all the links, update the database with the new ads, quit the webdriver.
 
         Args:
             to_html (bool): If set to True, return a list of html representations of the items details. Defaults to False.
-            min_price (int): The minimum price of your next apartment. Defaults to 1_200.
-            max_price (int): The maximum price of your next apartment. Defaults to 1_750.
-            min_bedrooms (int): The minimum number of bedrooms of your next apartment. Defaults to 2.
-            lat (float): The latitude of your prefered position for your next apartment. Defaults to 45.5254.
-            lng (float): The longitude of your prefered position for your next apartment. Defaults to -73.5724.
-            radius (int): The radius around your prefered position, in km. Defaults to 2.
-            scroll (int): The number of scrollings (or new pages) you want to do (or go to) before stopping looking for new ads. Defaults to 10.
             max_items (int): The maximum number of items you want to scrap for each run. It is good use to not set it too high, to avoid getting banned. Defaults to 30.
+            **kwargs: You search criteria, depending on the website you're scrapping (eg. minimum price, number of bedrooms, ...)
 
         Returns:
             list: A list of all the string or html representations of the items details. It is usefull for printing all the details from the new flats you found.
@@ -356,15 +329,7 @@ class Scraper:
         # else:
         #     self.load_cookies()
         self.log_in()
-        self.get_items_links(
-            min_price=min_price,
-            max_price=max_price,
-            min_bedrooms=min_bedrooms,
-            lat=lat,
-            lng=lng,
-            radius=radius,
-            scroll=scroll,
-        )
+        self.get_items_links(**kwargs)
         items_details = self.update_db(max_items=max_items, to_html=to_html)
         self.quit_driver()
         return items_details

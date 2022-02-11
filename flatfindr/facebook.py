@@ -53,7 +53,21 @@ class Facebook(Scraper):
         radius=2,
         scroll=10,
     ):
-        rentals = "/marketplace/montreal/propertyrentals?"
+        """Get links (i.e. url) of ads matching the search criteria.
+
+        Args:
+            min_price (int): The minimum price of your next apartment. Defaults to 1_200.
+            max_price (int): The maximum price of your next apartment. Defaults to 1_750.
+            min_bedrooms (int): The minimum number of bedrooms of your next apartment. Defaults to 2.
+            lat (float): The latitude of your prefered position for your next apartment. Defaults to 45.5254.
+            lng (float): The longitude of your prefered position for your next apartment. Defaults to -73.5724.
+            radius (int): The radius around your prefered position, in km. Defaults to 2.
+            scroll (int): The number of scrollings (or new pages) you want to do (or go to) before stopping looking for new ads. Defaults to 10.
+
+        Returns:
+            list: A list of all the flats url (or items links) that match the search criteria.
+        """
+        rentals = "/marketplace/category/propertyrentals?"
         price = f"minPrice={min_price}&maxPrice={max_price}"
         bedrooms = f"&minBedrooms={min_bedrooms}"
         pos = f"&exact=false&latitude={lat}&longitude={lng}&radius={radius}"
