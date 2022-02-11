@@ -12,7 +12,7 @@ from flatfindr.facebook import Facebook
 class TestLogIn(unittest.TestCase):
     @unittest.mock.patch("sys.stdout", new_callable=io.StringIO)
     def test_log_in(self, mock_stdout):
-        fb = Facebook()
+        fb = Facebook(headless=False)
         fb.log_in()
         self.assertEqual(mock_stdout.getvalue(), "")
         fb.quit_driver()
