@@ -311,8 +311,13 @@ class Scraper:
 
     def save_db(self):
         """Save the database dictionnary as a JSON file."""
-        with open(self.db_path, "w") as db_file:
-            json.dump(self.db, db_file)
+        try:
+            with open(self.db_path, "w") as db_file:
+                json.dump(self.db, db_file)
+        except:
+            print(
+                f"Error while trying to save the database to `{self.db_path}`. Please use a valid path, e.g. `./data/db.json`"
+            )
 
     def run(
         self,
