@@ -106,23 +106,40 @@ class Facebook(Scraper):
 
         return self.items_links
 
-    def get_item_publication_day(self, detail):
+    def get_item_publication_date(self, detail):
+        """Get the item publication date from an input string.
+
+        Args:
+            detail (str): A string containing the publication day, e.g. 'Published 3 days ago'.
+
+        Returns:
+            str: The publication day, in isoformat, e.g. '2022-02-11'
+        """
         if KEYWORDS["day"] in detail:  # if published less than a week ago
             try:
                 publication_day = int(detail[20])
             except:
                 print("Error while casting publication day")
-                return 0
+                # we consider that the ad has been published today
+                publication_day = 0
         elif KEYWORDS["week"] in detail:
             # if published more than a week ago, we use 8 as default
             publication_day = ONE_WEEK
         else:
             # if published less than a day ago, we use 0 as default
             publication_day = 0
-        # Transform into a date
+        # Cast into a date
         return (date.today() - timedelta(days=publication_day)).isoformat()
 
     def get_item_price(self, detail):
+        """Get the item price from an input string.
+
+        Args:
+            detail (str): A string containing the price, e.g. '1 300 $ / month'
+
+        Returns:
+            int: The item price, e.g. 1300
+        """
         try:
             return int(detail[:5].replace(" ", ""))
         except:
@@ -130,6 +147,14 @@ class Facebook(Scraper):
             return 0
 
     def get_item_address(self, detail):
+        """Get the item address from an input string.
+
+        Args:
+            detail (str): A string containing the full address, e.g. '5510 Avenue Stirling, Montreal, QC'.
+
+        Returns:
+            str: The item address, without the city, province, etc., e.g. '5510 Avenue Stirling'.
+        """
         return detail.replace(KEYWORDS["montreal"], "").replace(", ", "")
 
     def get_item_surface(self, detail):
@@ -158,8 +183,8 @@ class Facebook(Scraper):
         cnt = 0
         while cnt < 30:
             try:
-                img = self.driver.find_element_by_xpath(
-                    "//img[@referrerpolicy='origin-when-cross-origin']"
+                img = self.driver.find_element(
+                    By.XPATH, "//img[@referrerpolicy='origin-when-cross-origin']"
                 )
                 img_url = img.get_attribute("src")
                 if any(size in img_url for size in ("p720x720", "s960x960")):
@@ -172,8 +197,8 @@ class Facebook(Scraper):
                 print("Error while scraping images")
             cnt += 1
             try:
-                next_button = self.driver.find_element_by_xpath(
-                    f"//div[@aria-label='{KEYWORDS['next_img']}']"
+                next_button = self.driver.find_element(
+                    By.XPATH, f"//div[@aria-label='{KEYWORDS['next_img']}']"
                 )
                 next_button.click()
                 sleep(random.uniform(1, 1.2))
@@ -185,20 +210,20 @@ class Facebook(Scraper):
         item_details = super().get_item_details(item_url)
         if self.slow:
             sleep(random.uniform(5, 5.5))
-        all_href = self.driver.find_elements_by_xpath("//a[@href]")
+        all_href = self.driver.find_elements(By.XPATH, "//a[@href]")
 
         # Click on 'see more' button to get the full description
-        buttons = self.driver.find_elements_by_xpath("//div[@role='button']")
+        buttons = self.driver.find_elements(By.XPATH, "//div[@role='button']")
         _ = [
             button.click() for button in buttons if button.text == KEYWORDS["see_more"]
         ]
         sleep(random.uniform(0.5, 0.9))
 
-        details = self.driver.find_elements_by_xpath("//span[@dir]")
+        details = self.driver.find_elements(By.XPATH, "//span[@dir]")
         for i in range(len(details)):
             detail = details[i].text
             if not item_details.get("published") and KEYWORDS["published"] in detail:
-                item_details["published"] = self.get_item_publication_day(detail)
+                item_details["published"] = self.get_item_publication_date(detail)
             elif not item_details.get("price") and KEYWORDS["price"] in detail:
                 item_details["price"] = self.get_item_price(detail)
             elif not item_details.get("address") and KEYWORDS["address"] in detail:
