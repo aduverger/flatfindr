@@ -4,7 +4,7 @@
 
 install:
 	@pip install -e .
-	@mv ./flatfindr/logins-template.py ./flatfindr/logins.py
+	@mv -f ./flatfindr/logins-template.py ./flatfindr/logins.py
 
 test:
 	@coverage run -m pytest tests/*.py
