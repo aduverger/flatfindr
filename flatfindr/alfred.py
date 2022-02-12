@@ -75,7 +75,7 @@ def radius(update: Update, context: CallbackContext) -> int:
     user = update.message.from_user
     radius = re.findall(r"\d+", update.message.text)[0]
     logger.info(f"Radius of {user.first_name}: {radius}")
-    context.user_data["radius"] = int(radius)
+    context.user_data["radius"] = float(radius)
     update.message.reply_text("I see! What is your minimum monthly rent (in $CAD)?")
 
     return MIN_PRICE
@@ -271,7 +271,7 @@ def main() -> None:
         entry_points=[CommandHandler("start", start)],
         states={
             LOCATION: [MessageHandler(Filters.location, location)],
-            RADIUS: [MessageHandler(Filters.regex(r"\d+"), radius)],
+            RADIUS: [MessageHandler(Filters.regex(r"([0-9]*[.])?[0-9]"), radius)],
             MIN_PRICE: [MessageHandler(Filters.regex(r"\d+"), min_price)],
             MAX_PRICE: [MessageHandler(Filters.regex(r"\d+"), max_price)],
             MIN_BEDROOMS: [MessageHandler(Filters.regex(r"\d+"), min_bedrooms)],
