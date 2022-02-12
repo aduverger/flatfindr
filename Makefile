@@ -3,8 +3,9 @@
 # ----------------------------------
 
 install:
-	@pip install -e .
+	@pip install -e . -q
 	@mv -f ./flatfindr/logins-template.py ./flatfindr/logins.py
+	@echo 'flatfindr successfully installed'
 
 test:
 	@coverage run -m pytest tests/*.py
