@@ -51,22 +51,16 @@ Just keep it mind that if you shut down your computer, the bot won't be accessib
 <br/><br/>
 # 🔥 Scrap it like it's hot
 When your bot instance is running, you can access it directly from Telegram:
+- First you need to answer a few questions to set your search criteria.
+- Once these criteria are defined, your bot will get back to you every 30 minutes with new flats if he found some.
+- You can cancel the search at any time by sending `/stop`.
+- To run it again, just send `/run`. You previous search criteria will be used.
+- To access you current criteria, send `/params`.
+- If you want to modify some of these criteria, send `/start` again.
 <br/><br/>
-<center>
-<img src="https://github.com/aduverger/flatfindr/blob/master/images/alfred2.png?raw=true" alt="drawing" width="200"/>
-&nbsp; &nbsp; <img src="https://github.com/aduverger/flatfindr/blob/master/images/alfred3.png?raw=true" alt="drawing" width="200"/> 
-&nbsp; &nbsp; <img src="https://github.com/aduverger/flatfindr/blob/master/images/alfred7.png?raw=true" alt="drawing" width="200"/>
 
-<br/><br/>
-<img src="https://github.com/aduverger/flatfindr/blob/master/images/alfred4.png?raw=true" alt="drawing" width="200"/>
-&nbsp; &nbsp; <img src="https://github.com/aduverger/flatfindr/blob/master/images/alfred5.png?raw=true" alt="drawing" width="200"/>
-&nbsp; &nbsp; <img src="https://github.com/aduverger/flatfindr/blob/master/images/alfred6.png?raw=true" alt="drawing" width="200"/>
-</center>
+<img src="https://github.com/aduverger/flatfindr/blob/master/images/alfred2.png?raw=true" alt="drawing" width="200"/> &nbsp; &nbsp; &nbsp; <img src="https://github.com/aduverger/flatfindr/blob/master/images/alfred3.png?raw=true" alt="drawing" width="200"/> &nbsp; &nbsp; &nbsp; <img src="https://github.com/aduverger/flatfindr/blob/master/images/alfred4.png?raw=true" alt="drawing" width="200"/> 
 
-<br/><br/>
-- Once your search criteria are defined, your bot will get back to you every 30 minutes with new apartments ads if he found some.
-- You can cancel the search at any time by sending /stop.
-- To run it again, just send /run. You previous search criteria will be used.
-- To access you current criteria, send /params.
-- If you want to modify some of these criteria, send /start again.
+<img src="https://github.com/aduverger/flatfindr/blob/master/images/alfred5.png?raw=true" alt="drawing" width="200"/> &nbsp; &nbsp; &nbsp; <img src="https://github.com/aduverger/flatfindr/blob/master/images/alfred6.png?raw=true" alt="drawing" width="200"/> &nbsp; &nbsp; &nbsp; <img
+src="https://github.com/aduverger/flatfindr/blob/master/images/alfred7.png?raw=true" alt="drawing" width="200"/>
 
