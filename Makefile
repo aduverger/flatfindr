@@ -1,22 +1,15 @@
 # ----------------------------------
 #          INSTALL & TEST
 # ----------------------------------
-install_requirements:
+
+install:
 	@pip install -r requirements.txt
-
-check_code:
-	@flake8 scripts/* flatfindr/*.py
-
-black:
-	@black scripts/* flatfindr/*.py
+	@mv ./flatfindr/logins-template.py ./flatfindr/logins.py
 
 test:
 	@coverage run -m pytest tests/*.py
 	@coverage report -m --omit="${VIRTUAL_ENV}/lib/python*"
 	@rm -f raw_data/test_db.json
-
-ftest:
-	@Write me
 
 clean:
 	@rm -f */version.txt
@@ -26,10 +19,19 @@ clean:
 	@rm -fr flatfindr-*.dist-info
 	@rm -fr flatfindr.egg-info
 
-install:
-	@pip install . -U
+UNAME := $(shell uname)
+logins:
+	@read -p "What is your facebook id (email or phone number) ?  " ID \
+	&& read -p "What is your facebook password ?  " PWD \
+	&& if [ "$(UNAME)" = "Darwin" ]; then sed -i '' -e "s/<ID>/$${ID}/g" -e "s/<PWD>/$${PWD}/g" ./flatfindr/logins.py \
+	; else sed -i -e "s/<ID>/$${ID}/g" -e "s/<PWD>/$${PWD}/g" ./flatfindr/logins.py; fi
 
-all: clean install test black check_code
+token:
+	@read -p "What is your bot Access Token ? " TOKEN \
+	&& if [ "$(UNAME)" = "Darwin" ]; then sed -i '' -e "s/<TOKEN>/$${TOKEN}/g" ./flatfindr/logins.py \
+	; else sed -i -e "s/<TOKEN>/$${TOKEN}/g" ./flatfindr/logins.py; fi
+
+all: clean install test
 
 count_lines:
 	@find ./ -name '*.py' -exec  wc -l {} \; | sort -n| awk \

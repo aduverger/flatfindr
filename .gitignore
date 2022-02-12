@@ -2,9 +2,10 @@
 .coverage
 .ipynb_checkpoints
 .DS_Store
-flatfindr/logins.py
-raw_data/
 *.csv
 **/__pycache__/
 .env
 .python-version
+flatfindr/logins.py
+raw_data/
+drivers/
