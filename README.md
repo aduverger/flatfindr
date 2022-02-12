@@ -17,7 +17,7 @@ Clone the project and install it:
 ```bash
 git clone git@github.com:aduverger/flatfindr.git
 cd flatfindr
-make install clean
+make install
 ```
 
 ## Copy your Facebook login infos
