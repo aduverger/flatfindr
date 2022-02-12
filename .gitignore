@@ -7,5 +7,6 @@
 .env
 .python-version
 flatfindr/logins.py
-raw_data/
+*.pkl
+*.json
 driver/chromedriver

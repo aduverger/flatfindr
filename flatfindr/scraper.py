@@ -14,7 +14,7 @@ ONE_WEEK = 8
 KEYWORDS = {"gmaps": "+Montr%C3%A9al,+QC"}
 DEFAULT_DB_PATH = os.path.join(
     os.path.dirname(os.path.dirname(os.path.realpath(__file__))),
-    os.path.join("raw_data", "db.json"),
+    os.path.join("saves", "db.json"),
 )
 
 """
@@ -32,7 +32,7 @@ class Scraper:
         Args:
             website (str): The name of the website you want to scrap. Should match with the keys of the `LOGINS` dictionnary from `logins.py`, e.g.: 'facebook'
             headless (bool): Set to False if you want the browser to run with a GUI (meaning a window will pop-up). Defaults to True.
-            db_path (str): The path to the JSON database. Defaults to ./raw_data/db.json from the package root.
+            db_path (str): The path to the JSON database. Defaults to ./saves/db.json from the package root.
             slow (bool): Set to True if you want the wole process to run slowly by adding a lot of waiting times inside the methods.
                          This is particularly usefull if you're running the scripts on a slow machine, e.g. a Rasbery Pi, so that the webpages don't switch to fast for it to get the details.
                          Defaults to False.
@@ -102,11 +102,11 @@ class Scraper:
 
     def save_cookies(self):
         """Save cookies from current session.
-        The cookies are saved in ./raw_data/cookies-<WEBSITE_NAME>.pkl from package root.
+        The cookies are saved in ./saves/cookies-<WEBSITE_NAME>.pkl from package root.
         """
         cookies_path = os.path.join(
             os.path.dirname(os.path.dirname(os.path.realpath(__file__))),
-            "raw_data",
+            "saves",
             f"cookies-{self.website}.pkl",
         )
         with open(cookies_path, "wb") as cookies_file:
@@ -117,7 +117,7 @@ class Scraper:
         self.driver.get(self.main_url)
         cookies_path = os.path.join(
             os.path.dirname(os.path.dirname(os.path.realpath(__file__))),
-            "raw_data",
+            "saves",
             f"cookies-{self.website}.pkl",
         )
         with open(cookies_path, "rb") as cookies_file:
@@ -335,7 +335,7 @@ class Scraper:
         """
         # cookies_path = os.path.join(
         #     os.path.dirname(os.path.dirname(os.path.realpath(__file__))),
-        #     "raw_data/cookies.pkl",
+        #     "saves/cookies.pkl",
         # )
         # if not os.path.isfile(cookies_path):
         #     self.log_in()

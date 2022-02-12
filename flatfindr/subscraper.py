@@ -35,7 +35,7 @@ class Subscraper(Scraper):
         """
         Args:
             headless (bool): Set to False if you want the browser to run with a GUI (meaning a window will pop-up). Defaults to True.
-            db_path (str): The path to the JSON database. Defaults to ./raw_data/db.json from the root of the flatfindr library.
+            db_path (str): The path to the JSON database. Defaults to ./saves/db.json from the root of the flatfindr library.
             slow (bool): Set to True if you want the wole process to run slowly by adding a lot of waiting times inside the methods.
                          This is particularly usefull if you're running the scripts on a slow machine, e.g. a Rasbery Pi, so that the webpages don't switch to fast for it to get the details.
                          Defaults to False.

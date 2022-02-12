@@ -258,7 +258,7 @@ def main() -> None:
     persistence = PicklePersistence(
         filename=os.path.join(
             os.path.dirname(os.path.dirname(os.path.realpath(__file__))),
-            os.path.join("raw_data", "alfred"),
+            os.path.join("saves", "alfred.pkl"),
         )
     )
     updater = Updater(LOGINS["telegram"], use_context=True, persistence=persistence)
