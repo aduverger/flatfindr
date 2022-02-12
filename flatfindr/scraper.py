@@ -86,7 +86,7 @@ class Scraper:
             else:
                 driver_path = os.path.join(
                     os.path.dirname(os.path.dirname(os.path.realpath(__file__))),
-                    os.path.join("drivers", "chromedriver"),
+                    os.path.join("driver", "chromedriver"),
                 )
             self.driver = webdriver.Chrome(
                 service=Service(driver_path), options=options
