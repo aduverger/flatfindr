@@ -39,7 +39,7 @@ make token
 Just keep it mind that if you shut down your computer, the bot won't be accessible anymore. So you'll have to re-run the above `flatfindr-bot` command.
 
 ## Download the appropriate chromedriver
-- Go to [chromedriver website](https://chromedriver.chromium.org/downloads)
+- Go to the [chromedriver website](https://chromedriver.chromium.org/downloads).
 - Download the driver that is compatible with your Chrome version and system.
 
 - Save this file as `./driver/chromedriver`
