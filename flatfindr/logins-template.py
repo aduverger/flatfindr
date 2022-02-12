@@ -6,8 +6,8 @@
 """
 
 LOGINS = {
-    "facebook": {"id": "<ID>", "pass": "<PWD>"},
-    "telegram": "<TOKEN>",
+    "facebook": {"id": r"<ID>", "pass": r"<PWD>"},
+    "telegram": r"<TOKEN>",
 }
 
 URL = {"facebook": "https://www.facebook.com"}

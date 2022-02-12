@@ -19,6 +19,13 @@ git clone git@github.com:aduverger/flatfindr.git
 cd flatfindr
 make install clean
 ```
+## Download the appropriate chromedriver
+- Go to `https://chromedriver.chromium.org/downloads`
+- Download the driver that is compatible with your Chrome version and system.
+
+- Save this file as `./driver/chromedriver`
+<br/><br/>
+
 ## Copy your Facebook login infos
 <i>This part is mandatory only if you want to access the Facebook Marketplace.</i>
 
@@ -26,13 +33,6 @@ Copy inside `logins.py` your id and password in place of `"<ID>"` and `"<PWD>"`,
 ```bash
 make logins
 ```
-
-## Download the appropriate chromedriver
-- Go to `https://chromedriver.chromium.org/downloads`
-- Download the driver that is compatible with your Chrome version and system.
-
-- Save this file as `./driver/chromedriver`
-<br/><br/>
 
 ## Create a Telegram bot
 - To generate an Access Token, you have to talk to [BotFather](https://t.me/botfather) and follow a few simple steps (described [here](https://core.telegram.org/bots#6-botfather)).
