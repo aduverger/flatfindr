@@ -54,8 +54,8 @@ When your bot instance is running, you can access it directly from Telegram:
 <br/><br/>
 <center>
 <img src="https://github.com/aduverger/flatfindr/blob/master/images/alfred2.png?raw=true" alt="drawing" width="200"/>
-&nbsp; &nbsp; &nbsp; <img src="https://github.com/aduverger/flatfindr/blob/master/images/alfred3.png?raw=true" alt="drawing" width="200"/> 
-&nbsp; &nbsp; &nbsp; <img src="https://github.com/aduverger/flatfindr/blob/master/images/alfred7.png?raw=true" alt="drawing" width="200"/>
+&nbsp; &nbsp; <img src="https://github.com/aduverger/flatfindr/blob/master/images/alfred3.png?raw=true" alt="drawing" width="200"/> 
+&nbsp; &nbsp; <img src="https://github.com/aduverger/flatfindr/blob/master/images/alfred7.png?raw=true" alt="drawing" width="200"/>
 
 <br/><br/>
 <img src="https://github.com/aduverger/flatfindr/blob/master/images/alfred4.png?raw=true" alt="drawing" width="200"/>
