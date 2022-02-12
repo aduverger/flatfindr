@@ -3,7 +3,7 @@
 # ----------------------------------
 
 install:
-	@pip install .
+	@pip install -e .
 	@mv ./flatfindr/logins-template.py ./flatfindr/logins.py
 
 test:

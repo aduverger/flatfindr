@@ -19,12 +19,6 @@ git clone git@github.com:aduverger/flatfindr.git
 cd flatfindr
 make install clean
 ```
-## Download the appropriate chromedriver
-- Go to `https://chromedriver.chromium.org/downloads`
-- Download the driver that is compatible with your Chrome version and system.
-
-- Save this file as `./driver/chromedriver`
-<br/><br/>
 
 ## Copy your Facebook login infos
 <i>This part is mandatory only if you want to access the Facebook Marketplace.</i>
@@ -42,14 +36,20 @@ make logins
 make token
 ```
 
-- You can then run the bot instance locally (prefered) or in the cloud (not currently supported). To run it locally:
+Just keep it mind that if you shut down your computer, the bot won't be accessible anymore. So you'll have to re-run the above `flatfindr-bot` command.
+
+## Download the appropriate chromedriver
+- Go to `https://chromedriver.chromium.org/downloads`
+- Download the driver that is compatible with your Chrome version and system.
+
+- Save this file as `./driver/chromedriver`
+<br/><br/>
+
+# 🔥 Scrap it like it's hot
+- You can run the bot instance locally (prefered) or in the cloud (not currently supported). To run it locally:
 ```bash
 flatfindr-bot
 ```
-
-Just keep it mind that if you shut down your computer, the bot won't be accessible anymore. So you'll have to re-run the above `flatfindr-bot` command.
-<br/><br/>
-# 🔥 Scrap it like it's hot
 When your bot instance is running, you can access it directly from Telegram:
 - First you need to answer a few questions to set your search criteria.
 - Once these criteria are defined, your bot will get back to you every 30 minutes with new flats if he found some.
