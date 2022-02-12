@@ -75,7 +75,7 @@ def radius(update: Update, context: CallbackContext) -> int:
     user = update.message.from_user
     radius = re.findall(r"\d+", update.message.text)[0]
     logger.info(f"Radius of {user.first_name}: {radius}")
-    context.user_data["radius"] = int(radius)
+    context.user_data["radius"] = float(radius)
     update.message.reply_text("I see! What is your minimum monthly rent (in $CAD)?")
 
     return MIN_PRICE
