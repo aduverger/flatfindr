@@ -36,8 +36,6 @@ make logins
 make token
 ```
 
-Just keep it mind that if you shut down your computer, the bot won't be accessible anymore. So you'll have to re-run the above `flatfindr-bot` command.
-
 ## Download the appropriate chromedriver
 - Go to the [chromedriver website](https://chromedriver.chromium.org/downloads).
 - Download the driver that is compatible with your Chrome version and system.
@@ -50,6 +48,8 @@ Just keep it mind that if you shut down your computer, the bot won't be accessib
 ```bash
 flatfindr-bot
 ```
+Just keep it mind that if you shut down your computer, the bot won't be accessible anymore. So you'll have to re-run the above `flatfindr-bot` command.
+
 When your bot instance is running, you can access it directly from Telegram:
 - First you need to answer a few questions to set your search criteria.
 - Once these criteria are defined, your bot will get back to you every 30 minutes with new flats if he found some.
