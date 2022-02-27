@@ -33,17 +33,17 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 
-CATEGORY, LOCATION, RADIUS, MIN_PRICE, MAX_PRICE, MIN_BEDROOMS = range(6)
+CATEGORY, DESCRIPTION, LOCATION, RADIUS, MIN_PRICE, MAX_PRICE, MIN_BEDROOMS = range(7)
 
 
 def start(update: Update, context: CallbackContext) -> int:
     """Starts the conversation and asks the user about its prefered location."""
     update.message.reply_text(
-        "Hi! My name is Geoffrey. I will help you find pretty much anything, including ice 🧊"
+        "Hi! My name is Geoffrey. I will help you find pretty much anything, including ice 🧊\n"
         "Send /cancel to stop talking to me."
     )
 
-    reply_keyboard = [["Apartments", "Furniture"]]
+    reply_keyboard = [["Apartment", "Furniture"]]
 
     update.message.reply_text(
         "What are you looking for?",
@@ -61,15 +61,27 @@ def category(update: Update, context: CallbackContext) -> int:
     """Stores the category of search and asks for the location."""
     user = update.message.from_user
     user_category = update.message.text
-    logger.info(f"Category of {user.first_name}: {user_category}")
+    logger.info(f"Category for {user.first_name}: {user_category}")
     context.user_data["category"] = user_category
     update.message.reply_text(
-        f"Okay let's find some {user_category}."
-        "What is the location around which you are looking for an apartment?\n"
-        "Click on 📎 then 'Location'",
+        f"Alright let's find some {user_category}. "
+        "What is the best description of what you're looking for? e.g. Blue sofa.\n"
+        "Just send `None` if you don't want to provide any.",
         reply_markup=ReplyKeyboardRemove(),
     )
 
+    return DESCRIPTION
+
+
+def description(update: Update, context: CallbackContext) -> int:
+    user = update.message.from_user
+    user_description = update.message.text
+    logger.info(f"Description for {user.first_name}: {user_description}")
+    context.user_data["description"] = user_description
+    update.message.reply_text(
+        f"Great! Now, what is the location around which you are looking for that {user_description}?\n"
+        "Click on 📎 then 'Location'",
+    )
     return LOCATION
 
 
@@ -98,7 +110,7 @@ def radius(update: Update, context: CallbackContext) -> int:
     radius = re.findall(r"\d+", update.message.text)[0]
     logger.info(f"Radius of {user.first_name}: {radius}")
     context.user_data["radius"] = float(radius)
-    update.message.reply_text("I see! What is your minimum monthly rent (in $CAD)?")
+    update.message.reply_text("I see! What is your minimum price (in $CAD)?")
 
     return MIN_PRICE
 
@@ -109,9 +121,7 @@ def min_price(update: Update, context: CallbackContext) -> int:
     min_price = re.findall(r"\d+", update.message.text)[0]
     logger.info(f"min_price of {user.first_name}: {min_price}")
     context.user_data["min_price"] = int(min_price)
-    update.message.reply_text(
-        "Wonderful! Now, what is your maximum monthly rent (in $CAD)?"
-    )
+    update.message.reply_text("Wonderful! Now, what is your maximum price (in $CAD)?")
 
     return MAX_PRICE
 
@@ -136,8 +146,9 @@ def min_bedrooms(update: Update, context: CallbackContext) -> int:
     min_bedrooms = re.findall(r"\d+", update.message.text)[0]
     logger.info(f"min_bedrooms of {user.first_name}: {min_bedrooms}")
     context.user_data["min_bedrooms"] = int(min_bedrooms)
+    print("hi")
     update.message.reply_text(
-        "Thank you! 🚀 Launching now the apartment search with these parameters:\n"
+        "Thank you! 🚀 Launching now the search with these parameters:\n"
         + get_params(context)
     )
     update.message.reply_text(
@@ -169,10 +180,7 @@ def run(update: Update, context: CallbackContext) -> None:
     chat_id = update.message.chat_id
     context.bot.send_message(
         chat_id=update.message.chat_id,
-        text=(
-            "🚀 Launching the apartment search with these parameters:\n"
-            + get_params(context)
-        ),
+        text=("🚀 Launching the search with these parameters:\n" + get_params(context)),
     )
     context.job_queue.run_repeating(
         run_once,
@@ -208,11 +216,13 @@ def stop(update: Update, context: CallbackContext) -> None:
 def run_once(context: CallbackContext) -> None:
     chat_id = context.job.context[1]
     job_context = context.job.context[0]
-    ads_to_display = Facebook().run(
+    ads_to_display = Facebook(
+        category=job_context.user_data.get("category", "Apartment"), headless=False
+    ).run(
         to_html=True,
-        category=job_context.user_data.get("category", "Apartments"),
         min_price=job_context.user_data.get("min_price", 1200),
         max_price=job_context.user_data.get("max_price", 1750),
+        description=job_context.user_data.get("description", None),
         min_bedrooms=job_context.user_data.get("min_bedrooms", 2),
         lat=job_context.user_data.get("lat", 45.5254),
         lng=job_context.user_data.get("lng", -73.5724),
@@ -248,12 +258,12 @@ def params(update: Update, context: CallbackContext) -> None:
 
 def get_params(context: CallbackContext) -> str:
     return (
-        f"- Category: {context.user_data.get('category', '')}\n",
-        f"- Min price: {context.user_data.get('min_price', '')} $CAD\n"
-        f"- Max price: {context.user_data.get('max_price', '')} $CAD\n"
-        f"- Min bedrooms: {context.user_data.get('min_bedrooms', '')}\n"
-        f"- Lat, Long: {round(context.user_data.get('lat', 0), 2)}, {round(context.user_data.get('lng', 0), 2)}\n"
-        f"- Radius: {context.user_data.get('radius', '')} km",
+        f"- Category: {context.user_data.get('category', 'Apartment')}\n"
+        f"- Min price: {context.user_data.get('min_price', '1 200')} $CAD\n"
+        f"- Max price: {context.user_data.get('max_price', '1 750')} $CAD\n"
+        f"- Min bedrooms: {context.user_data.get('min_bedrooms', '2')}\n"
+        f"- Lat, Long: {round(context.user_data.get('lat', 45.5254), 2)}, {round(context.user_data.get('lng', -73.5724), 2)}\n"
+        f"- Radius: {context.user_data.get('radius', '2')} km"
     )
 
 
@@ -295,7 +305,10 @@ def main() -> None:
     conv_handler = ConversationHandler(
         entry_points=[CommandHandler("start", start)],
         states={
-            CATEGORY: [MessageHandler(Filters.regex("^(Boy|Girl|Other)$"), category)],
+            CATEGORY: [
+                MessageHandler(Filters.regex("^(Apartment|Furniture)$"), category)
+            ],
+            DESCRIPTION: [MessageHandler(Filters.text, description)],
             LOCATION: [MessageHandler(Filters.location, location)],
             RADIUS: [MessageHandler(Filters.regex(r"([0-9]*[.])?[0-9]"), radius)],
             MIN_PRICE: [MessageHandler(Filters.regex(r"\d+"), min_price)],

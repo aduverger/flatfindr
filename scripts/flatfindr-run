@@ -6,7 +6,16 @@ import random
 from time import sleep
 
 while True:
-    items_details = Facebook(headless=False).run(scroll=2, max_items=5)
+    items_details = Facebook(category="furniture", headless=False).run(
+        scroll=2,
+        max_items=5,
+        min_price=200,
+        max_price=600,
+        description="canape",
+        lat=45.5254,
+        lng=-73.5724,
+        radius=2,
+    )
     for ad in items_details:
         print(ad)
     sleep(random.uniform(25, 35) * 60)

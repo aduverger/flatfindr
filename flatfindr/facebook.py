@@ -1,5 +1,6 @@
 # facebook marketplace
 import random
+import re
 from datetime import date, timedelta
 from time import sleep
 
@@ -12,7 +13,7 @@ MAX_SURFACE = 200  # The max apartment surface after which it is considered that
 WEBSITE_NAME = "facebook"
 KEYWORDS = {
     "published": "Mis en vente il y a ",
-    "price": "$ / mois",
+    "price": "$",
     "address": "Montréal, QC",
     "surface(m2)": "mètres carrés",
     "surface(ft2)": "pieds carrés",
@@ -26,6 +27,7 @@ KEYWORDS = {
     "see_less": "Voir moins",
     "next_img": "Voir l’image suivante",
 }
+VALID_CATEGORIES = ("apartment", "furniture")
 
 """
 Class for scraping the Facebook Marketplace, which inherits from the Scraper Class.
@@ -40,9 +42,19 @@ class Facebook(Scraper):
         """
         Args:
             headless (bool): Set to False if you want the browser to run with a GUI (meaning a window will pop-up). Defaults to True.
+            category (str): The category of your search, e.g. apartment, furniture, ... Defaults to apartment.
             db_path (str): The path to the JSON database. Defaults to ./saves/db.json from the root of the flatfindr library.
         """
         super().__init__(website=WEBSITE_NAME, **kwargs)
+        if self.category.lower() not in VALID_CATEGORIES:
+            print(
+                f"Only {VALID_CATEGORIES} are supported yet as search categories, not {self.category}."
+            )
+        self.category = (
+            "propertyrentals"
+            if self.category.lower() == "apartment"
+            else self.category.lower()
+        )
 
     def log_in(self):
         """Log in the website."""
@@ -67,6 +79,7 @@ class Facebook(Scraper):
         self,
         min_price,
         max_price,
+        description,
         min_bedrooms,
         lat,
         lng,
@@ -78,6 +91,7 @@ class Facebook(Scraper):
         Args:
             min_price (int): The minimum price of your next apartment.
             max_price (int): The maximum price of your next apartment.
+            description (str): A specific description of what you are looking for, e.g. 'blue sofa'.
             min_bedrooms (int): The minimum number of bedrooms of your next apartment.
             lat (float): The latitude of your prefered position for your next apartment.
             lng (float): The longitude of your prefered position for your next apartment.
@@ -87,11 +101,15 @@ class Facebook(Scraper):
         Returns:
             list: A list of all the flats url (or items links) that match the search criteria.
         """
-        rentals = "/marketplace/category/propertyrentals?"
+
+        rentals = f"/marketplace/category/{self.category}?"
         price = f"minPrice={min_price}&maxPrice={max_price}"
-        bedrooms = f"&minBedrooms={min_bedrooms}"
+        query = f"&query={description}" if description else ""
+        bedrooms = (
+            f"&minBedrooms={min_bedrooms}" if self.category == "propertyrentals" else ""
+        )
         pos = f"&exact=false&latitude={lat}&longitude={lng}&radius={radius}"
-        self.driver.get(self.main_url + rentals + price + bedrooms + pos)
+        self.driver.get(self.main_url + rentals + price + query + bedrooms + pos)
         sleep(random.uniform(2, 2.5))
 
         for _ in range(scroll):
@@ -153,7 +171,7 @@ class Facebook(Scraper):
             int: The item price, e.g. 1300
         """
         try:
-            return int(detail[:5].replace(" ", ""))
+            return int(re.findall(r"[0-9]+", detail.replace(" ", ""))[0])
         except:
             print("Error while casting price")
             return 0
@@ -252,7 +270,7 @@ class Facebook(Scraper):
 
         Args:
             item_url (str): The url (or link) of the item.
-            remove_swap (bool): Set to False if you want to see ads about swaping apartments. Defaults to True.
+            remove_swap (bool): Only for apartments search. Set to False if you want to see ads about swaping apartments. Defaults to True.
             remove_first_floor (bool): Set to False if you want to see ads with flats on ground floor. Defaults to True.
 
         Returns:
@@ -260,7 +278,9 @@ class Facebook(Scraper):
         """
         item_details = super().get_item_details(item_url)
         sleep(random.uniform(2, 2.5))
-
+        if self.category != "propertyrentals":
+            remove_swap = False
+            remove_first_floor = False
         buttons = self.driver.find_elements(By.XPATH, "//div[@role='button']")
         # Click on 'see more' button to get the full description
         _ = [
@@ -275,15 +295,32 @@ class Facebook(Scraper):
                 item_details["published"] = self.get_item_publication_date(detail)
             elif not item_details.get("price") and KEYWORDS["price"] in detail:
                 item_details["price"] = self.get_item_price(detail)
-            elif not item_details.get("address") and KEYWORDS["address"] in detail:
+            elif (
+                self.category == "propertyrentals"
+                and not item_details.get("address")
+                and KEYWORDS["address"] in detail
+            ):
                 item_details["address"] = self.get_item_address(detail)
-            elif not item_details.get("surface") and (
-                KEYWORDS["surface(m2)"] in detail or KEYWORDS["surface(ft2)"] in detail
+            elif (
+                self.category == "propertyrentals"
+                and not item_details.get("surface")
+                and (
+                    KEYWORDS["surface(m2)"] in detail
+                    or KEYWORDS["surface(ft2)"] in detail
+                )
             ):
                 item_details["surface"] = self.get_item_surface(detail)
-            elif not item_details.get("bedrooms") and KEYWORDS["bedrooms"] in detail:
+            elif (
+                self.category == "propertyrentals"
+                and not item_details.get("bedrooms")
+                and KEYWORDS["bedrooms"] in detail
+            ):
                 item_details["bedrooms"] = self.get_item_bedrooms(detail)
-            elif not item_details.get("furnished") and detail in KEYWORDS["furnished"]:
+            elif (
+                self.category == "propertyrentals"
+                and not item_details.get("furnished")
+                and detail in KEYWORDS["furnished"]
+            ):
                 item_details["furnished"] = detail
             elif (
                 not item_details.get("description")
@@ -315,6 +352,7 @@ class Facebook(Scraper):
         max_items=30,
         min_price=1_200,
         max_price=1_750,
+        description=None,
         min_bedrooms=2,
         lat=45.5254,
         lng=-73.5724,
@@ -328,7 +366,8 @@ class Facebook(Scraper):
             max_items (int): The maximum number of items you want to scrap for each run. It is good use to not set it too high, to avoid getting banned. Defaults to 30.
             min_price (int): The minimum price of your next apartment. Defaults to 1_200.
             max_price (int): The maximum price of your next apartment. Defaults to 1_750.
-            min_bedrooms (int): The minimum number of bedrooms of your next apartment. Defaults to 2.
+            description (str): A specific description of what you are looking for, e.g. 'blue sofa'. Default to None.
+            min_bedrooms (int): Only for apartments search. The minimum number of bedrooms of your next apartment. Defaults to 2.
             lat (float): The latitude of your prefered position for your next apartment. Defaults to 45.5254.
             lng (float): The longitude of your prefered position for your next apartment. Defaults to -73.5724.
             radius (int): The radius around your prefered position, in km. Defaults to 2.
@@ -342,6 +381,7 @@ class Facebook(Scraper):
             max_items=max_items,
             min_price=min_price,
             max_price=max_price,
+            description=description,
             min_bedrooms=min_bedrooms,
             lat=lat,
             lng=lng,

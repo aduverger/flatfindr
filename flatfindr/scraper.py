@@ -27,10 +27,17 @@ See the Subscraper Class for an exemple.
 
 
 class Scraper:
-    def __init__(self, website="", headless=True, db_path=DEFAULT_DB_PATH):
+    def __init__(
+        self,
+        website="",
+        category="apartment",
+        headless=True,
+        db_path=DEFAULT_DB_PATH,
+    ):
         """
         Args:
             website (str): The name of the website you want to scrap. Should match with the keys of the `LOGINS` dictionnary from `logins.py`, e.g.: 'facebook'
+            category (str): The category of your search, e.g. apartment, furniture, ... Defaults to apartment.
             headless (bool): Set to False if you want the browser to run with a GUI (meaning a window will pop-up). Defaults to True.
             db_path (str): The path to the JSON database. Defaults to ./saves/db.json from the package root.
         """
@@ -45,6 +52,7 @@ class Scraper:
             )
             self.email = "id"
             self.password = "pwd"
+        self.category = category
         self.db_path = db_path
         self.load_driver(headless=headless)
         self.main_url = URL.get(website, "")
