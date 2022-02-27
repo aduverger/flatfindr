@@ -11,6 +11,9 @@ from selenium.webdriver.common.by import By
 
 MAX_SURFACE = 200  # The max apartment surface after which it is considered that the surface is actually in square feet and not square metre.
 WEBSITE_NAME = "facebook"
+VALID_CATEGORIES = ("apartment", "furniture")
+PROPERTY_RENTALS = "propertyrentals"
+MIN_DESC_LEN = 40
 KEYWORDS = {
     "published": ("Mis en vente il y a ", "Publié il y a"),
     "price": "$",
@@ -27,7 +30,6 @@ KEYWORDS = {
     "see_less": "Voir moins",
     "next_img": "Voir l’image suivante",
 }
-VALID_CATEGORIES = ("apartment", "furniture")
 
 """
 Class for scraping the Facebook Marketplace, which inherits from the Scraper Class.
@@ -51,7 +53,7 @@ class Facebook(Scraper):
                 f"Only {VALID_CATEGORIES} are supported yet as search categories, not {self.category}."
             )
         self.category = (
-            "propertyrentals"
+            PROPERTY_RENTALS
             if self.category.lower() == "apartment"
             else self.category.lower()
         )
@@ -106,7 +108,7 @@ class Facebook(Scraper):
         price = f"minPrice={min_price}&maxPrice={max_price}"
         query = f"&query={description}" if description else ""
         bedrooms = (
-            f"&minBedrooms={min_bedrooms}" if self.category == "propertyrentals" else ""
+            f"&minBedrooms={min_bedrooms}" if self.category == PROPERTY_RENTALS else ""
         )
         pos = f"&exact=false&latitude={lat}&longitude={lng}&radius={radius}"
         self.driver.get(self.main_url + rentals + price + query + bedrooms + pos)
@@ -277,7 +279,7 @@ class Facebook(Scraper):
         """
         item_details = super().get_item_details(item_url)
         sleep(random.uniform(2, 2.5))
-        if self.category != "propertyrentals":
+        if self.category != PROPERTY_RENTALS:
             remove_swap = False
             remove_first_floor = False
         buttons = self.driver.find_elements(By.XPATH, "//div[@role='button']")
@@ -297,13 +299,13 @@ class Facebook(Scraper):
             elif not item_details.get("price") and KEYWORDS["price"] in detail:
                 item_details["price"] = self.get_item_price(detail)
             elif (
-                self.category == "propertyrentals"
+                self.category == PROPERTY_RENTALS
                 and not item_details.get("address")
                 and KEYWORDS["address"] in detail
             ):
                 item_details["address"] = self.get_item_address(detail)
             elif (
-                self.category == "propertyrentals"
+                self.category == PROPERTY_RENTALS
                 and not item_details.get("surface")
                 and (
                     KEYWORDS["surface(m2)"] in detail
@@ -312,13 +314,13 @@ class Facebook(Scraper):
             ):
                 item_details["surface"] = self.get_item_surface(detail)
             elif (
-                self.category == "propertyrentals"
+                self.category == PROPERTY_RENTALS
                 and not item_details.get("bedrooms")
                 and KEYWORDS["bedrooms"] in detail
             ):
                 item_details["bedrooms"] = self.get_item_bedrooms(detail)
             elif (
-                self.category == "propertyrentals"
+                self.category == PROPERTY_RENTALS
                 and not item_details.get("furnished")
                 and detail in KEYWORDS["furnished"]
             ):
@@ -330,7 +332,11 @@ class Facebook(Scraper):
                 detail = details[i + 1].text
                 item_details["description"] = self.get_item_description(detail)
             # For ads other than flats, it's difficult to locate the description, except by its length:
-            elif not item_details.get("description") and len(detail) > 40:
+            elif (
+                not item_details.get("description")
+                and self.category != PROPERTY_RENTALS
+                and len(detail) > MIN_DESC_LEN
+            ):
                 item_details["description"] = self.get_item_description(detail)
 
         if any(
