@@ -27,15 +27,12 @@ See the Subscraper Class for an exemple.
 
 
 class Scraper:
-    def __init__(self, website="", headless=True, db_path=DEFAULT_DB_PATH, slow=False):
+    def __init__(self, website="", headless=True, db_path=DEFAULT_DB_PATH):
         """
         Args:
             website (str): The name of the website you want to scrap. Should match with the keys of the `LOGINS` dictionnary from `logins.py`, e.g.: 'facebook'
             headless (bool): Set to False if you want the browser to run with a GUI (meaning a window will pop-up). Defaults to True.
             db_path (str): The path to the JSON database. Defaults to ./saves/db.json from the package root.
-            slow (bool): Set to True if you want the wole process to run slowly by adding a lot of waiting times inside the methods.
-                         This is particularly usefull if you're running the scripts on a slow machine, e.g. a Rasbery Pi, so that the webpages don't switch to fast for it to get the details.
-                         Defaults to False.
         """
         self.website = website
         try:
@@ -49,7 +46,6 @@ class Scraper:
             self.email = "id"
             self.password = "pwd"
         self.db_path = db_path
-        self.slow = slow
         self.load_driver(headless=headless)
         self.main_url = URL.get(website, "")
         self.items_links = []
@@ -91,6 +87,7 @@ class Scraper:
             self.driver = webdriver.Chrome(
                 service=Service(driver_path), options=options
             )
+            self.driver.implicitly_wait(10)
         except:
             print(
                 "Error: Check that your chromedriver fits with your browser version and your system architecture"

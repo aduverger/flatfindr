@@ -3,9 +3,10 @@
 
 from flatfindr.facebook import Facebook
 import random
-import os
 from time import sleep
 
 while True:
-    print(Facebook().run())
+    items_details = Facebook(headless=False).run(scroll=2, max_items=5)
+    for ad in items_details:
+        print(ad)
     sleep(random.uniform(25, 35) * 60)

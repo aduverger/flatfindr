@@ -8,7 +8,7 @@ from flatfindr.scraper import Scraper, ONE_WEEK
 from selenium.webdriver.common.by import By
 
 
-MAX_SURFACE = 200  # The max surface after which it is considered that the surface is actually in square feet and not square metre.
+MAX_SURFACE = 200  # The max apartment surface after which it is considered that the surface is actually in square feet and not square metre.
 WEBSITE_NAME = "facebook"
 KEYWORDS = {
     "published": "Mis en vente il y a ",
@@ -41,17 +41,12 @@ class Facebook(Scraper):
         Args:
             headless (bool): Set to False if you want the browser to run with a GUI (meaning a window will pop-up). Defaults to True.
             db_path (str): The path to the JSON database. Defaults to ./saves/db.json from the root of the flatfindr library.
-            slow (bool): Set to True if you want the wole process to run slowly by adding a lot of waiting times inside the methods.
-                         This is particularly usefull if you're running the scripts on a slow machine, e.g. a Rasbery Pi, so that the webpages don't switch to fast for it to get the details.
-                         Defaults to False.
         """
         super().__init__(website=WEBSITE_NAME, **kwargs)
 
     def log_in(self):
         """Log in the website."""
         super().log_in()
-        if self.slow:
-            sleep(random.uniform(2, 2.5))
         try:
             email_input = self.driver.find_element(By.ID, "email")
             email_input.send_keys(self.email)
@@ -70,24 +65,24 @@ class Facebook(Scraper):
 
     def get_items_links(
         self,
-        min_price=1_200,
-        max_price=1_750,
-        min_bedrooms=2,
-        lat=45.5254,
-        lng=-73.5724,
-        radius=2,
-        scroll=10,
+        min_price,
+        max_price,
+        min_bedrooms,
+        lat,
+        lng,
+        radius,
+        scroll,
     ):
         """Get links (i.e. url) of ads matching the search criteria.
 
         Args:
-            min_price (int): The minimum price of your next apartment. Defaults to 1_200.
-            max_price (int): The maximum price of your next apartment. Defaults to 1_750.
-            min_bedrooms (int): The minimum number of bedrooms of your next apartment. Defaults to 2.
-            lat (float): The latitude of your prefered position for your next apartment. Defaults to 45.5254.
-            lng (float): The longitude of your prefered position for your next apartment. Defaults to -73.5724.
-            radius (int): The radius around your prefered position, in km. Defaults to 2.
-            scroll (int): The number of scrollings you want to do before stopping looking for new ads. Defaults to 10.
+            min_price (int): The minimum price of your next apartment.
+            max_price (int): The maximum price of your next apartment.
+            min_bedrooms (int): The minimum number of bedrooms of your next apartment.
+            lat (float): The latitude of your prefered position for your next apartment.
+            lng (float): The longitude of your prefered position for your next apartment.
+            radius (int): The radius around your prefered position, in km.
+            scroll (int): The number of scrollings you want to do before stopping looking for new ads.
 
         Returns:
             list: A list of all the flats url (or items links) that match the search criteria.
@@ -97,10 +92,7 @@ class Facebook(Scraper):
         bedrooms = f"&minBedrooms={min_bedrooms}"
         pos = f"&exact=false&latitude={lat}&longitude={lng}&radius={radius}"
         self.driver.get(self.main_url + rentals + price + bedrooms + pos)
-        if self.slow:
-            sleep(random.uniform(5, 7))
-
-        seen_links = [data[0] for data in self.db["data"]]
+        sleep(random.uniform(2, 2.5))
 
         for _ in range(scroll):
             try:
@@ -111,9 +103,8 @@ class Facebook(Scraper):
             except:
                 pass
 
-        if self.slow:
-            sleep(random.uniform(2, 3))
         all_href = self.driver.find_elements(By.XPATH, "//a[@href]")
+        seen_links = [data[0] for data in self.db["data"]]
         for item in all_href:
             try:
                 item_url = item.get_attribute("href")
@@ -268,9 +259,8 @@ class Facebook(Scraper):
             dict: A dictionnary with all the item details.
         """
         item_details = super().get_item_details(item_url)
-        sleep(random.uniform(1, 1.5))
-        if self.slow:
-            sleep(4)
+        sleep(random.uniform(2, 2.5))
+
         buttons = self.driver.find_elements(By.XPATH, "//div[@role='button']")
         # Click on 'see more' button to get the full description
         _ = [
@@ -318,3 +308,43 @@ class Facebook(Scraper):
             item_details["state"] = "new"
             item_details["images"] = []  # self.get_item_images()
         return item_details
+
+    def run(
+        self,
+        to_html=False,
+        max_items=30,
+        min_price=1_200,
+        max_price=1_750,
+        min_bedrooms=2,
+        lat=45.5254,
+        lng=-73.5724,
+        radius=2,
+        scroll=10,
+    ):
+        """Main method to run a full search : log in, get links, scrap all the links, update the database with the new ads, quit the webdriver.
+
+        Args:
+            to_html (bool): If set to True, return a list of html representations of the items details. Defaults to False.
+            max_items (int): The maximum number of items you want to scrap for each run. It is good use to not set it too high, to avoid getting banned. Defaults to 30.
+            min_price (int): The minimum price of your next apartment. Defaults to 1_200.
+            max_price (int): The maximum price of your next apartment. Defaults to 1_750.
+            min_bedrooms (int): The minimum number of bedrooms of your next apartment. Defaults to 2.
+            lat (float): The latitude of your prefered position for your next apartment. Defaults to 45.5254.
+            lng (float): The longitude of your prefered position for your next apartment. Defaults to -73.5724.
+            radius (int): The radius around your prefered position, in km. Defaults to 2.
+            scroll (int): The number of scrollings you want to do before stopping looking for new ads. Defaults to 10.
+
+        Returns:
+            list: A list of all the string or html representations of the items details. It is usefull for printing all the details from the new flats you found.
+        """
+        return super().run(
+            to_html=to_html,
+            max_items=max_items,
+            min_price=min_price,
+            max_price=max_price,
+            min_bedrooms=min_bedrooms,
+            lat=lat,
+            lng=lng,
+            radius=radius,
+            scroll=scroll,
+        )

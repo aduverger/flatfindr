@@ -237,7 +237,6 @@ def help(update: Update, context: CallbackContext) -> None:
         "/run - run the flat search\n"
         "/stop - stop the current flat search\n"
         "/params - display the current search parameters\n"
-        "/test - test the display of a flat ad"
     )
 
 
