@@ -12,7 +12,7 @@ from selenium.webdriver.common.by import By
 MAX_SURFACE = 200  # The max apartment surface after which it is considered that the surface is actually in square feet and not square metre.
 WEBSITE_NAME = "facebook"
 KEYWORDS = {
-    "published": "Mis en vente il y a ",
+    "published": ("Mis en vente il y a ", "Publié il y a"),
     "price": "$",
     "address": "Montréal, QC",
     "surface(m2)": "mètres carrés",
@@ -147,11 +147,10 @@ class Facebook(Scraper):
         """
         if KEYWORDS["day"] in detail:  # if published less than a week ago
             try:
-                publication_day = int(detail[20])
+                publication_day = int(re.findall(r"\d+")[0])
             except:
-                print("Error while casting publication day")
-                # we consider that the ad has been published today
-                publication_day = 0
+                # sometime Facebook write '1 day ago' as 'one day ago' just to mess with us:
+                publication_day = 1
         elif KEYWORDS["week"] in detail:
             # if published more than a week ago, we use 8 as default
             publication_day = ONE_WEEK
@@ -171,7 +170,7 @@ class Facebook(Scraper):
             int: The item price, e.g. 1300
         """
         try:
-            return int(re.findall(r"[0-9]+", detail.replace(" ", ""))[0])
+            return int(re.findall(r"\d+", detail.replace(" ", ""))[0])
         except:
             print("Error while casting price")
             return 0
@@ -196,7 +195,7 @@ class Facebook(Scraper):
             int: The item surface, in m2.
         """
         try:
-            surface = int(detail[:4].replace(" ", ""))
+            surface = int(re.findall(r"\d+", detail.replace(" ", ""))[0])
         except:
             print("Error while casting surface")
             return 0
@@ -215,7 +214,7 @@ class Facebook(Scraper):
             int: The item number of bedrooms, e.g. 2.
         """
         try:
-            return int(detail[0])
+            return int(re.search(r"\d+(?=\s*(bed|cham))").group())
         except:
             print("Error while casting number of bedrooms")
             return 0
@@ -291,7 +290,9 @@ class Facebook(Scraper):
         details = self.driver.find_elements(By.XPATH, "//span[@dir]")
         for i in range(len(details)):
             detail = details[i].text
-            if not item_details.get("published") and KEYWORDS["published"] in detail:
+            if not item_details.get("published") and any(
+                keyword in detail for keyword in KEYWORDS["published"]
+            ):
                 item_details["published"] = self.get_item_publication_date(detail)
             elif not item_details.get("price") and KEYWORDS["price"] in detail:
                 item_details["price"] = self.get_item_price(detail)
@@ -327,6 +328,9 @@ class Facebook(Scraper):
                 and detail == KEYWORDS["description"]
             ):
                 detail = details[i + 1].text
+                item_details["description"] = self.get_item_description(detail)
+            # For ads other than flats, it's difficult to locate the description, except by its length:
+            elif not item_details.get("description") and len(detail) > 40:
                 item_details["description"] = self.get_item_description(detail)
 
         if any(
