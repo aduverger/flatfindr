@@ -63,9 +63,7 @@ class Facebook(Scraper):
         super().log_in()
         try:
             email_input = self.driver.find_element(By.ID, "email")
-            print(email_input)
             email_input.send_keys(self.email)
-            print(self.email)
             sleep(random.uniform(0.2, 0.5))
             password_input = self.driver.find_element(By.ID, "pass")
             password_input.send_keys(self.password)
