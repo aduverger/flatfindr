@@ -217,7 +217,7 @@ def run_once(context: CallbackContext) -> None:
     chat_id = context.job.context[1]
     job_context = context.job.context[0]
     ads_to_display = Facebook(
-        category=job_context.user_data.get("category", "Apartment"), headless=False
+        category=job_context.user_data.get("category", "Apartment")
     ).run(
         to_html=True,
         min_price=job_context.user_data.get("min_price", 1200),
@@ -259,6 +259,7 @@ def params(update: Update, context: CallbackContext) -> None:
 def get_params(context: CallbackContext) -> str:
     return (
         f"- Category: {context.user_data.get('category', 'Apartment')}\n"
+        f"- Description: {context.user_data.get('description', '')}\n"
         f"- Min price: {context.user_data.get('min_price', '1 200')} $CAD\n"
         f"- Max price: {context.user_data.get('max_price', '1 750')} $CAD\n"
         f"- Min bedrooms: {context.user_data.get('min_bedrooms', '2')}\n"
