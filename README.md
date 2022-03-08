@@ -2,7 +2,7 @@
 
 A Telegram bot that help you find your next apartment.
 
-As this tool has been developed for flats in Montreal - Canada, it currently supports scrapping from :
+As this tool has originally been developed for flats in Montreal - Canada, it currently supports scrapping from :
 - Facebook Marketplace
 - Kijiji (coming soon)
 - Craigslist (coming sooner or later)
