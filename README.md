@@ -52,10 +52,10 @@ Just keep in mind that if you shut down your computer, the bot won't be accessib
 
 When your bot instance is running, you can access it directly from Telegram:
 - First you need to answer a few questions to set your search criteria.
-- Once these criteria are defined, your bot will get back to you every 30 minutes with new flats if he found some.
+- Once these criteria are defined, the bot will get back to you every 30 minutes with new flats if he found some.
 - You can cancel the search at any time by sending `/stop`.
-- To run it again, just send `/run`. You previous search criteria will be used.
-- To access you current criteria, send `/params`.
+- To run it again, just send `/run`. Your previous search criteria will be used.
+- To access your current criteria, send `/params`.
 - If you want to modify some of these criteria, send `/start` again.
 <br/><br/>
 
