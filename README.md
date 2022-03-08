@@ -48,7 +48,7 @@ make token
 ```bash
 flatfindr-bot
 ```
-Just keep it mind that if you shut down your computer, the bot won't be accessible anymore. So you'll have to re-run the above `flatfindr-bot` command.
+Just keep in mind that if you shut down your computer, the bot won't be accessible anymore. So you'll have to re-run the above `flatfindr-bot` command.
 
 When your bot instance is running, you can access it directly from Telegram:
 - First you need to answer a few questions to set your search criteria.
